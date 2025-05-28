@@ -1,14 +1,192 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <title>title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedirhan GÜLER - CV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Tailwind'in varsayılan font ailesini veya özel bir fontu kullanmak için */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Kaydırma çubuğu stilizasyonu (isteğe bağlı, modern bir dokunuş katar) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* slate-300 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* slate-400 */
+        }
+    </style>
 </head>
-<body>
-    <div>
-        <h1>Welcome to Bedo Help</h1>
-        <p>This is a placeholder for the help documentation of the Bedo application.</p>
-        <p>For more information, please refer to the official documentation or contact support.</p>
-    </div>
-</body>
+<body class="bg-slate-100 text-slate-800">
+
+    <div class="container max-w-4xl mx-auto p-6 md:p-10 bg-white shadow-2xl rounded-xl my-10 print:shadow-none print:my-0 print:p-0">
+
+        <header class="flex flex-col md:flex-row items-center md:items-start mb-10 md:mb-12">
+            <div class="flex-shrink-0 mb-6 md:mb-0 md:mr-8">
+                <img class="rounded-full w-32 h-32 md:w-40 md:h-40 border-4 border-sky-500 shadow-lg object-cover" 
+                     src="bedog.png" 
+                     alt="Bedirhan GÜLER Profil Fotoğrafı"
+                     onerror="this.onerror=null; this.src='https://placehold.co/160x160/E0E0E0/B0B0B0?text=Resim+Yok';">
+            </div>
+
+            <div class="text-center md:text-left flex-grow">
+                <h1 class="text-4xl md:text-5xl font-bold text-slate-800">Bedirhan GÜLER</h1>
+                <h2 class="text-xl md:text-2xl text-sky-600 font-light mt-1">Industrial Engineer</h2>
+                
+                <div class="mt-5 space-y-2 text-sm text-slate-600">
+                    <a href="mailto:bedirhanguler@gmail.com" class="flex items-center justify-center md:justify-start hover:text-sky-600 transition-colors duration-300">
+                        <svg class="w-4 h-4 mr-2 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
+                            <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
+                        </svg>
+                        bedirhanguler@gmail.com
+                    </a>
+                    <div class="flex items-center justify-center md:justify-start">
+                        <svg class="w-4 h-4 mr-2 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.134a1.5 1.5 0 01-1.052 1.767l-.28.112A9.043 9.043 0 008.17 11.83l.112-.28a1.5 1.5 0 011.767-1.052l3.134.716A1.5 1.5 0 0118 12.852V14a1.5 1.5 0 01-1.5 1.5h-1.054A10.001 10.001 0 012.446 5.054V4A1.5 1.5 0 012 3.5z" clip-rule="evenodd" />
+                        </svg>
+                        0542 727 4377
+                    </div>
+                    <div class="flex items-center justify-center md:justify-start">
+                        <svg class="w-4 h-4 mr-2 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.145l.002-.001L10 18.45l.287.348.002.001.282.145.018.008.006.003c.001 0 .001 0 .003.001.198.086.308.066.308.066s-.11-.02-.308.066L10 18.45m0 0l2.87-3.48a5.25 5.25 0 00-7.74 0L10 18.45z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M10 18.45c.525 0 1.024-.098 1.488-.273l.002-.001.002-.001.001-.001A5.235 5.235 0 0014.75 14.5c0-2.899-2.351-5.25-5.25-5.25S4.25 11.601 4.25 14.5c0 1.31.472 2.504 1.262 3.43l.001.002.001.001.002.001.002.001c.464.175.963.273 1.488.273zM10 5.5a1 1 0 011 1v3.75a.75.75 0 01-1.5 0V6.5a1 1 0 011-1zM10 2a1 1 0 011 1v.75a.75.75 0 01-1.5 0V3a1 1 0 011-1z" clip-rule="evenodd" />
+                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9 7 7 0 01-9.9-9.9zM10 18a8 8 0 100-16 8 8 0 000 16z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.145l.002-.001L10 18.45l.287.348.002.001.282.145.018.008.006.003c.001 0 .001 0 .003.001.198.086.308.066.308.066s-.11-.02-.308.066L10 18.45m0 0l2.87-3.48a5.25 5.25 0 00-7.74 0L10 18.45zM10 2a.75.75 0 01.75.75v2.5a.75.75 0 01-1.5 0v-2.5A.75.75 0 0110 2z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M10 4a6 6 0 100 12 6 6 0 000-12zm-8 6a8 8 0 1116 0 8 8 0 01-16 0z" clip-rule="evenodd" />
+                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm0-7a4 4 0 110 8 4 4 0 010-8zm0 9a5.001 5.001 0 00-4.268 2.36C6.033 15.204 7.93 16 10 16s3.967-.796 4.268-1.64A5.001 5.001 0 0010 11z" clip-rule="evenodd" />
+                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 2a10 10 0 100-20 10 10 0 000 20z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M15 10a5 5 0 11-10 0 5 5 0 0110 0zm-2 0a3 3 0 11-6 0 3 3 0 016 0zM5.072 14.695A8.003 8.003 0 0010 18a8.003 8.003 0 004.928-3.305A5.002 5.002 0 0010 13c-1.998 0-3.73 1.156-4.503 2.812l-.425-.817z" clip-rule="evenodd" />
+                        </svg>
+                        Izmit/KOCAELİ, 41001 Kocaeli
+                    </div>
+                    <a href="https://linkedin.com/in/bedirhan-güler-6bb189230" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center md:justify-start hover:text-sky-600 transition-colors duration-300">
+                        <svg class="w-4 h-4 mr-2 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.25 6.5 1.75 1.75 0 016.5 8.25zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a1.69 1.69 0 00-.12.75V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.38.93 3.38 4.32V19z"></path>
+                        </svg>
+                        linkedin.com/in/bedirhan-güler-6bb189230
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <section id="work-experience">
+            <h3 class="text-2xl font-semibold text-slate-700 mt-10 mb-6 border-b-2 border-sky-300 pb-3">Work Experience</h3>
+            
+            <div class="space-y-8">
+                <article class="bg-slate-50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                    <h4 class="text-lg font-semibold text-sky-700">Long-Term Human Resources Intern</h4>
+                    <p class="text-md text-slate-600 mb-1">Ford Otosan, Kocaeli | Recruitment Unit</p>
+                    <p class="text-xs text-slate-500 mb-3">Kas 2024 - Haz 2025</p>
+                    <ul class="text-sm text-slate-700 list-disc list-inside space-y-1.5 pl-2">
+                        <li>Taking an active role in recruitment processes</li>
+                        <li>Supporting process management and data analysis in human resources projects</li>
+                        <li>Actively involved in interdepartmental coordination and initial interview scheduling</li>
+                        <li>Preparing and publishing job postings</li>
+                        <li>Analyzing application data</li>
+                        <li>Creating and updating the candidate pool</li>
+                        <li>Documenting the recruitment process</li>
+                        <li>Providing support in various human resources projects</li>
+                    </ul>
+                </article>
+
+                <article class="bg-slate-50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                    <h4 class="text-lg font-semibold text-sky-700">Management Internship</h4>
+                    <p class="text-md text-slate-600 mb-1">Mercedes-Benz Türk, Aksaray | Operations Control Unit</p>
+                    <p class="text-xs text-slate-500 mb-3">Haz 2024 - Ağu 2024</p>
+                    <ul class="text-sm text-slate-700 list-disc list-inside space-y-1.5 pl-2">
+                        <li>Supporting budgeting, financial analysis, and feasibility study processes</li>
+                        <li>Contributing to the preparation of financial statements and gaining experience in project planning</li>
+                        <li>Assisting in process monitoring and KPI analysis for ongoing projects</li>
+                        <li>Developing suggestions with a focus on continuous improvement and cost control</li>
+                        <li>Contributing to data preparation used in investment feasibility reports and gaining insight into the financial framework of production capacity planning</li>
+                        <li>Observing financial validation processes and providing suggestions</li>
+                        <li>Learning and applying methods used in the preparation of financial statements</li>
+                    </ul>
+                </article>
+
+                <article class="bg-slate-50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                    <h4 class="text-lg font-semibold text-sky-700">Production Internship</h4>
+                    <p class="text-md text-slate-600 mb-1">Opsan, Kocaeli | Production</p>
+                    <p class="text-xs text-slate-500 mb-3">Haz 2023 - Ağu 2023</p>
+                    <ul class="text-sm text-slate-700 list-disc list-inside space-y-1.5 pl-2">
+                        <li>Conducting observations and assessments of machining and press-die manufacturing operations</li>
+                        <li>Observing workflow and interacting with blue-collar workers on the production floor</li>
+                        <li>Learning material flow processes and conducting bottleneck analyses</li>
+                        <li>Providing observations and feedback for process improvement</li>
+                        <li>Supporting daily production tracking and workflow control, contributing to data collection on efficiency and scrap rates</li>
+                        <li>Developed shop floor awareness of work standards and production pace through direct interaction with operators</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="education">
+            <h3 class="text-2xl font-semibold text-slate-700 mt-10 mb-6 border-b-2 border-sky-300 pb-3">Education</h3>
+            <div class="space-y-8">
+                <article class="bg-slate-50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                    <h4 class="text-lg font-semibold text-sky-700">Industrial Engineering</h4>
+                    <p class="text-md text-slate-600 mb-1">Kocaeli Üniversitesi, Kocaeli</p>
+                    <p class="text-xs text-slate-500 mb-3">Eyl 2021 - Haz 2025</p>
+                </article>
+
+                <article class="bg-slate-50 p-5 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                    <h4 class="text-lg font-semibold text-sky-700">High School</h4>
+                    <p class="text-md text-slate-600 mb-1">Kardelen Koleji Fen Lisesi, Nevşehir</p>
+                    <p class="text-xs text-slate-500 mb-3">Eyl 2017 - Haz 2021</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="skills">
+            <h3 class="text-2xl font-semibold text-slate-700 mt-10 mb-6 border-b-2 border-sky-300 pb-3">Skills</h3>
+            <div class="flex flex-wrap gap-2 md:gap-3">
+                <span class="bg-sky-100 text-sky-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-200 transition-colors duration-200 cursor-default">MS Office Programs (Excel-PowerPoint-Word)</span>
+                <span class="bg-sky-100 text-sky-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-200 transition-colors duration-200 cursor-default">AutoCAD</span>
+                <span class="bg-sky-100 text-sky-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-200 transition-colors duration-200 cursor-default">Artificial Intelligence Technologies</span>
+                <span class="bg-sky-100 text-sky-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-200 transition-colors duration-200 cursor-default">Multi-Criteria Decision Making Methods</span>
+                <span class="bg-sky-100 text-sky-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-200 transition-colors duration-200 cursor-default">Feasibility studies</span>
+                <span class="bg-sky-100 text-sky-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-200 transition-colors duration-200 cursor-default">Communication and coordination skills</span>
+            </div>
+        </section>
+
+        <section id="languages">
+            <h3 class="text-2xl font-semibold text-slate-700 mt-10 mb-6 border-b-2 border-sky-300 pb-3">Languages</h3>
+            <div class="flex flex-wrap gap-2 md:gap-3">
+                <span class="bg-teal-100 text-teal-700 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-teal-200 transition-colors duration-200 cursor-default">English</span>
+            </div>
+        </section>
+
+        <section id="personal-information">
+            <h3 class="text-2xl font-semibold text-slate-700 mt-10 mb-6 border-b-2 border-sky-300 pb-3">Personal Information</h3>
+            <div class="flex items-center text-slate-700">
+                <svg class="w-5 h-5 mr-2 text-sky-600 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M1 1.75A.75.75 0 011.75 1h16.5a.75.75 0 01.75.75v16.5a.75.75 0 01-.75.75H1.75a.75.75 0 01-.75-.75V1.75zM2.5 2.5v2.75H6V2.5H2.5zM2.5 7v2.75H6V7H2.5zm0 4.5v2.75H6v-2.75H2.5zM7.5 16V2.5h10V16h-10zM14 5a1 1 0 10-2 0v2a1 1 0 102 0V5zm-2.5 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                </svg>
+                <strong>Driving License:</strong>&nbsp;B Class
+            </div>
+        </section>
+
+        <footer class="text-center mt-12 pt-6 border-t border-slate-300 print:hidden">
+            <p class="text-xs text-slate-500">
+                &copy; <span id="currentYear"></span> Bedirhan GÜLER. All rights reserved.
+            </p>
+        </footer>
+        <script>
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        </script>
+
+    </div> </body>
 </html>
