@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endüstri Mühendisliği Yetkinlik Analizi İnfografiği</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .flow-arrow {
+            position: relative;
+            padding-right: 20px;
+        }
+        .flow-arrow::after {
+            content: '→';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: #0a9396;
+        }
+        .flow-card {
+            border: 2px solid #94d2bd;
+            background-color: #ffffff;
+        }
+        .flow-card.cause {
+            border-color: #ee9b00;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #005f73, #0a9396);
+            color: white;
+        }
+        h1, h2, h3 {
+            color: #005f73;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800">
+
+    <header class="bg-white shadow-md p-6 text-center sticky top-0 z-50">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Endüstri Mühendisliği İş Piyasası Analizi</h1>
+        <p class="text-lg text-gray-600 mt-2">İş İlanlarından Elde Edilen Veri Odaklı Bulgular</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <section id="intro" class="text-center mb-16">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-4">Mühendis ve Sanayi Arasındaki Köprüyü Kurmak</h2>
+                <p class="text-lg text-gray-700 mb-8">
+                    Bu çalışma, Endüstri Mühendisliği alanındaki kariyer fırsatlarının ardındaki gizli haritayı ortaya çıkarmayı hedeflemektedir. Şirketlerin adaylarda gerçekten ne aradığını ve bu taleplerin farklı departmanlarda nasıl şekillendiğini anlamak için yola çıktık. Analizimiz, gerçek iş ilanlarından elde edilen verilere dayanarak, mezunlar, akademisyenler ve İK profesyonelleri için somut bir yol haritası sunmaktadır.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="stat-card rounded-xl shadow-lg p-8 flex flex-col justify-center items-center">
+                        <span class="text-6xl font-black">70</span>
+                        <span class="text-xl font-semibold mt-2">Gerçek İş İlanı</span>
+                        <p class="mt-2 text-center text-gray-200">Analizin temelini oluşturan, farklı sektörlerden toplanmış ilan sayısı.</p>
+                    </div>
+                    <div class="stat-card rounded-xl shadow-lg p-8 flex flex-col justify-center items-center">
+                         <span class="text-6xl font-black">100+</span>
+                        <span class="text-xl font-semibold mt-2">Benzersiz Yetkinlik</span>
+                        <p class="mt-2 text-center text-gray-200">Metin madenciliği ile tespit edilen teknik, metodolojik ve sosyal beceri sayısı.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="top-competencies" class="mb-16">
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Piyasanın Nabzı: En Çok Talep Edilen Yetkinlikler</h2>
+                <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                    İş ilanlarının "Genel Nitelikler" ve "İş Tanımı" bölümlerini analiz ettiğimizde, bazı yetkinliklerin diğerlerinden çok daha sık talep edildiğini gördük. Bu grafik, Endüstri Mühendisleri için en kritik 12 yetkinliğin frekans dağılımını göstererek piyasanın önceliklerini ortaya koyuyor.
+                </p>
+                <div class="chart-container">
+                    <canvas id="topCompetenciesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="department-needs" class="mb-16">
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Departmanların DNA'sı: Rollere Göre Yetkinlik Dağılımı</h2>
+                <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                    "Endüstri Mühendisi" tek bir kalıba sığmaz. Sorumluluklar departmana göre büyük ölçüde değişir. Aşağıdaki grafik, temel yetkinlik kategorilerinin farklı departmanlardaki talep yoğunluğunu karşılaştırıyor. Bu, kariyerini belirli bir alanda şekillendirmek isteyenler için kritik bir bilgidir.
+                </p>
+                <div class="chart-container">
+                    <canvas id="departmentCompetenciesChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <section id="dematel" class="mb-16">
+             <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Yetkinliklerin Gizli Ağı: Neden-Sonuç İlişkileri</h2>
+                <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                    Bazı yetkinlikler diğerlerini tetikler. DEMATEL analizi, bu neden-sonuç ilişkilerini haritalamamızı sağlar. "Etkileyen" (Neden) yetkinlikler, geliştirildiğinde diğer birçok becerinin de önünü açan temel taşlarıdır. "Etkilenen" (Sonuç) yetkinlikler ise bu temeller üzerine inşa edilir. Bu yapı, eğitim ve gelişim stratejileri için bir pusula görevi görür.
+                </p>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+                    <div class="text-center">
+                        <div class="flow-card cause p-4 rounded-lg shadow-md mb-2">
+                            <h3 class="font-bold text-lg text-[#ca6702]">Analitik Düşünme</h3>
+                            <p class="text-sm">Temel Neden</p>
+                        </div>
+                        <p class="text-xs text-gray-500">Bu yetkinlik, diğer yetkinliklerin gelişimini tetikler.</p>
+                    </div>
+                    <div class="hidden md:block flow-arrow"></div>
+                     <div class="block md:hidden text-2xl text-[#0a9396] my-2">↓</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                        <div class="flow-card p-4 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg">Problem Çözme</h3>
+                             <p class="text-sm">Sonuç</p>
+                        </div>
+                        <div class="flow-card p-4 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg">Süreç İyileştirme</h3>
+                             <p class="text-sm">Sonuç</p>
+                        </div>
+                        <div class="flow-card p-4 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg">Veri Analizi</h3>
+                             <p class="text-sm">Sonuç</p>
+                        </div>
+                         <div class="flow-card p-4 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg">Karar Verme</h3>
+                             <p class="sm">Sonuç</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ahp" class="mb-16">
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Önem Derecesi: Hangi Yetkinlik Ne Kadar Kritik?</h2>
+                <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                    Tüm yetkinlikler eşit yaratılmamıştır. Bulanık AHP analizi, uzman görüşlerini temel alarak her bir yetkinlik kategorisine bir "önem ağırlığı" atamamızı sağlar. Bu, karar vericilerin en kritik becerilere odaklanmasına yardımcı olur ve işe alım süreçlerinde objektif bir temel oluşturur.
+                </p>
+                <div class="chart-container" style="max-height: 400px;">
+                    <canvas id="ahpWeightsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="matching-model" class="mb-16">
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-center mb-2">Optimum Eşleşme: Veri Odaklı Aday Seçimi</h2>
+                <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                    Tüm analizlerimizi bir araya getirerek, adayları en uygun iş ilanlarıyla eşleştiren bir 0-1 atama modeli oluşturduk. Bu model, adayların sahip olduğu yetkinlikleri ve iş ilanlarının gerektirdiği ağırlıklandırılmış yetkinlikleri karşılaştırarak en yüksek "Uyum Puanı"nı hedefler. Sonuç, hem aday hem de şirket için en verimli eşleşmedir.
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aday Profili</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temel Yetkinlikler</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Atanan İlan</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uyum Puanı</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap font-medium">Yeni Mezun Analist</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">İleri Excel, SQL, Analitik Düşünme</td>
+                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-[#0a9396]">Veri Analisti (Planlama)</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-teal-100 text-teal-800">88 / 100</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap font-medium">Deneyimli Süreç Müh.</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yalın Üretim, SAP, Proje Yönetimi</td>
+                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-[#0a9396]">Kıdemli Üretim Mühendisi</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-teal-100 text-teal-800">92 / 100</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap font-medium">Kalite Odaklı Uzman</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">ISO 9001, IATF 16949, FMEA</td>
+                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-[#0a9396]">Tedarikçi Kalite Mühendisi</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">95 / 100</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+    
+    <footer class="bg-gray-800 text-white text-center p-6 mt-8">
+        <p>&copy; 2025 - Bedirhan Güler'in Tez Çalışmasından Uyarlanmıştır.</p>
+        <p class="text-sm text-gray-400 mt-1">Bu infografik, Endüstri Mühendisliği yetkinliklerini görselleştirmek amacıyla oluşturulmuştur.</p>
+    </footer>
+
+    <script>
+        const vibrantPalette = {
+            darkTeal: '#005f73',
+            teal: '#0a9396',
+            lightTeal: '#94d2bd',
+            beige: '#e9d8a6',
+            orange: '#ee9b00',
+            darkOrange: '#ca6702',
+            burntOrange: '#bb3e03'
+        };
+
+        function wrapLabel(str, maxWidth) {
+            if (typeof str !== 'string' || str.length <= maxWidth) {
+                return str;
+            }
+            const words = str.split(' ');
+            let currentLine = '';
+            const lines = [];
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i];
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                if (testLine.length > maxWidth && currentLine.length > 0) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            } else {
+                return label;
+            }
+        };
+
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: vibrantPalette.darkTeal,
+                        font: {
+                            size: 14,
+                            family: 'Inter'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 95, 115, 0.9)',
+                    titleFont: { size: 16, weight: 'bold', family: 'Inter' },
+                    bodyFont: { size: 14, family: 'Inter' },
+                    callbacks: {
+                        title: tooltipTitleCallback
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: vibrantPalette.darkTeal,
+                        font: { family: 'Inter', size: 12 }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: vibrantPalette.darkTeal,
+                        font: { family: 'Inter', size: 12 }
+                    },
+                    grid: {
+                        color: '#e0e0e0'
+                    }
+                }
+            }
+        };
+
+        const topCompetenciesData = {
+            labels: [
+                wrapLabel('Analitik Düşünme', 16),
+                'İngilizce',
+                wrapLabel('MS Office / İleri Excel', 16),
+                wrapLabel('Problem Çözme', 16),
+                wrapLabel('Takım Çalışması', 16),
+                wrapLabel('ERP Bilgisi (Genel)', 16),
+                wrapLabel('Yalın Üretim Teknikleri', 16),
+                wrapLabel('İletişim Becerileri', 16),
+                wrapLabel('Kalite Yönetim Sistemleri', 16),
+                wrapLabel('SAP Bilgisi (Spesifik)', 16),
+                wrapLabel('Veri Analizi (SQL/Power BI)', 16),
+                wrapLabel('Proje Yönetimi', 16)
+            ],
+            datasets: [{
+                label: 'İlanlarda Görülme Sıklığı (%)',
+                data: [90, 85, 80, 75, 70, 65, 55, 50, 45, 40, 35, 30],
+                backgroundColor: [
+                    vibrantPalette.teal,
+                    vibrantPalette.lightTeal,
+                    vibrantPalette.teal,
+                    vibrantPalette.lightTeal,
+                    vibrantPalette.teal,
+                    vibrantPalette.lightTeal,
+                    vibrantPalette.teal,
+                    vibrantPalette.lightTeal,
+                    vibrantPalette.teal,
+                    vibrantPalette.lightTeal,
+                     vibrantPalette.teal,
+                    vibrantPalette.lightTeal,
+                ],
+                borderColor: vibrantPalette.darkTeal,
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        };
+
+        new Chart(document.getElementById('topCompetenciesChart'), {
+            type: 'bar',
+            data: topCompetenciesData,
+            options: { ...commonChartOptions, indexAxis: 'y' }
+        });
+
+        const departmentData = {
+            labels: ['Üretim', 'Planlama', 'Kalite', wrapLabel('Süreç Geliştirme / AR-GE', 16)],
+            datasets: [
+                {
+                    label: 'Yazılım & Araçlar',
+                    data: [50, 80, 40, 75],
+                    backgroundColor: vibrantPalette.teal,
+                },
+                {
+                    label: 'Metodoloji & Süreç',
+                    data: [85, 55, 90, 70],
+                    backgroundColor: vibrantPalette.orange,
+                },
+                {
+                    label: 'Analitik & Yumuşak Beceriler',
+                    data: [60, 85, 70, 90],
+                    backgroundColor: vibrantPalette.lightTeal,
+                }
+            ]
+        };
+        
+        new Chart(document.getElementById('departmentCompetenciesChart'), {
+            type: 'bar',
+            data: departmentData,
+            options: {
+                ...commonChartOptions,
+                scales: {
+                    x: { ...commonChartOptions.scales.x, stacked: true },
+                    y: { ...commonChartOptions.scales.y, stacked: true }
+                }
+            }
+        });
+        
+        const ahpData = {
+            labels: [
+                wrapLabel('Analitik ve Problem Çözme', 16), 
+                wrapLabel('Teknik Yazılım ve Araçlar', 16), 
+                wrapLabel('Üretim ve Kalite Metodolojileri', 16), 
+                'İletişim ve Takım Çalışması', 
+                'Proje ve Zaman Yönetimi'
+            ],
+            datasets: [{
+                label: 'Önem Ağırlıkları',
+                data: [35, 25, 20, 15, 5],
+                backgroundColor: [
+                    vibrantPalette.darkTeal,
+                    vibrantPalette.teal,
+                    vibrantPalette.lightTeal,
+                    vibrantPalette.orange,
+                    vibrantPalette.beige
+                ],
+                hoverOffset: 4
+            }]
+        };
+
+        new Chart(document.getElementById('ahpWeightsChart'), {
+            type: 'doughnut',
+            data: ahpData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                           color: vibrantPalette.darkTeal,
+                           font: { size: 12, family: 'Inter' },
+                           padding: 20,
+                           usePointStyle: true,
+                        }
+                    },
+                    tooltip: {
+                         backgroundColor: 'rgba(0, 95, 115, 0.9)',
+                         titleFont: { size: 16, weight: 'bold', family: 'Inter' },
+                         bodyFont: { size: 14, family: 'Inter' },
+                         callbacks: {
+                            title: tooltipTitleCallback,
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
