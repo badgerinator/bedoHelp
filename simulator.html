@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aday Uyum Simülatörü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Tailwind sky-50 */
+            color: #334155; /* Tailwind slate-700 */
+        }
+        .tool-card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem; /* p-8 */
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05), 0 3px 6px rgba(0,0,0,0.03);
+            border-top: 4px solid #0d9488; /* Tailwind teal-600 */
+        }
+        .competency-item-wrapper {
+            @apply py-5 border-b border-gray-100 relative pl-6; /* Added pl-6 for accent line space */
+        }
+        .competency-item-wrapper::before { /* Accent line */
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 5px;
+            height: 70%;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+        }
+        .competency-item-wrapper:last-child {
+            @apply border-b-0;
+        }
+        .dropdown-label {
+            @apply block mb-2 text-sm font-semibold text-slate-700 flex items-center;
+        }
+        .dropdown-label .emoji {
+            @apply mr-2.5 text-xl text-teal-600;
+        }
+        .dropdown-label .weight-info {
+            @apply ml-auto text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full;
+        }
+        .dropdown-select {
+            @apply bg-slate-50 border-2 border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-3.5 transition-all duration-200 shadow-sm;
+        }
+        .calculate-button {
+            @apply text-white bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-300 font-semibold rounded-lg text-base w-full px-8 py-3.5 text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+        }
+        .result-item {
+            @apply bg-white border border-gray-200 p-5 rounded-lg mb-4 flex flex-col sm:flex-row justify-between sm:items-center hover:shadow-lg transition-all duration-300;
+        }
+        .result-info {
+            @apply mb-3 sm:mb-0;
+        }
+        .result-title {
+            @apply text-md font-semibold text-slate-800;
+        }
+        .result-department {
+            @apply text-xs text-slate-500;
+        }
+        .result-actions {
+            @apply flex flex-col sm:flex-row items-stretch sm:items-center gap-3;
+        }
+        .result-score {
+            @apply text-lg font-bold text-teal-600 px-4 py-1.5 bg-teal-50 border border-teal-200 rounded-full order-first sm:order-none;
+        }
+        .show-detail-button {
+            @apply text-sm font-medium text-teal-600 hover:text-teal-700 hover:underline cursor-pointer transition-colors px-4 py-1.5 rounded-md hover:bg-teal-50;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            @apply fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out;
+        }
+        .modal-content {
+            @apply bg-white rounded-xl shadow-2xl p-7 w-full max-w-lg mx-auto transform transition-all duration-300 ease-in-out scale-95 opacity-0;
+        }
+        .modal-overlay.active .modal-content {
+            @apply scale-100 opacity-100;
+        }
+        .modal-header {
+             @apply flex justify-between items-center pb-4 mb-4 border-b border-gray-200;
+        }
+        .modal-title {
+            @apply text-2xl font-bold text-slate-800;
+        }
+        .modal-close-button {
+            @apply text-slate-400 hover:text-slate-600 text-3xl leading-none font-semibold transition-colors;
+        }
+        .modal-body {
+            @apply text-left;
+        }
+        .modal-footer {
+            @apply px-4 py-3 mt-6 -mx-7 -mb-7 bg-slate-50 rounded-b-xl text-right;
+        }
+        .modal-ok-button {
+             @apply px-7 py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all;
+        }
+
+        /* Level Colors - Applied to select border and left accent on wrapper */
+        .level-wrapper-0::before { background-color: #94a3b8; } /* slate-400 */
+        .level-select-0 { @apply border-slate-400 focus:border-slate-500 focus:ring-slate-200 bg-slate-50; }
+        .level-wrapper-1::before { background-color: #ef4444; } /* red-500 */
+        .level-select-1 { @apply border-red-500 focus:border-red-600 focus:ring-red-200 bg-red-50; }
+        .level-wrapper-2::before { background-color: #f59e0b; } /* amber-500 */
+        .level-select-2 { @apply border-amber-500 focus:border-amber-600 focus:ring-amber-200 bg-amber-50; }
+        .level-wrapper-3::before { background-color: #10b981; } /* emerald-500 */
+        .level-select-3 { @apply border-emerald-500 focus:border-emerald-600 focus:ring-emerald-200 bg-emerald-50; }
+        .level-wrapper-4::before { background-color: #3b82f6; } /* blue-500 */
+        .level-select-4 { @apply border-blue-500 focus:border-blue-600 focus:ring-blue-200 bg-blue-50; }
+        .level-wrapper-5::before { background-color: #8b5cf6; } /* violet-500 */
+        .level-select-5 { @apply border-violet-500 focus:border-violet-600 focus:ring-violet-200 bg-violet-50; }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-md border-b-2 border-teal-500">
+        <div class="container mx-auto px-6 py-6">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-teal-700 tracking-tight">Aday Uyum Simülatörü</h1>
+            <p class="text-base text-slate-600 mt-1.5">Adayınızın sürücü yetkinlik seviyelerini seçin ve potansiyel iş ilanlarıyla uyumunu keşfedin.</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div class="md:col-span-5 lg:col-span-4">
+                <div class="tool-card">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center"><span class="mr-3 text-3xl">🛠️</span>Sürücü Yetkinlik Seviyeleri</h2>
+                    <form id="competencyForm" class="space-y-0">
+                        </form>
+                    <button id="calculateButton" type="button" class="calculate-button mt-8">Uyumu Hesapla</button>
+                </div>
+            </div>
+
+            <div class="md:col-span-7 lg:col-span-8">
+                <div class="tool-card">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2 flex items-center"><span class="mr-3 text-3xl">🏆</span>En Uyumlu İlk 5 İş İlanı</h2>
+                    <p class="text-sm text-slate-500 mb-6">Skorlar 0 (düşük uyum) ile 1 (yüksek uyum) arasındadır.</p>
+                    <div id="resultsContainer" class="space-y-4">
+                        <p class="text-slate-500 text-center py-4">Lütfen adayın yetkinlik seviyelerini seçip 'Uyumu Hesapla' butonuna tıklayın.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-800 text-white mt-16 py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-sm">&copy; 2025 Yetkinlik Analizi Projesi.</p>
+        </div>
+    </footer>
+
+    <div id="jobDetailModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalJobTitle">İlan Detayları</h3>
+                <button id="closeModalButton" class="modal-close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-md text-slate-800 mb-1.5"><strong>İlan Başlığı:</strong> <span id="modalFullJobTitle" class="font-normal text-slate-700"></span></p>
+                <p class="text-md text-slate-800 mb-4"><strong>Departman:</strong> <span id="modalJobDepartment" class="font-normal text-slate-700"></span></p>
+                <h4 class="text-lg font-semibold text-slate-800 mt-5 mb-3">İlanın Beklediği Sürücü Yetkinlik Seviyeleri:</h4>
+                <ul id="modalJobRequirements" class="space-y-2 text-sm text-slate-700 max-h-72 overflow-y-auto pr-3 border-t border-gray-200 pt-4">
+                    </ul>
+            </div>
+            <div class="modal-footer">
+                <button id="modalOkButton" class="modal-ok-button">
+                    Tamam
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const driverCompetencies = [
+            { name: 'Liderlik', key: 'leadership', weight: 0.224, label: 'Liderlik', emoji: '👑' },
+            { name: 'Paydaş Yönetimi', key: 'stakeholder_management', weight: 0.154, label: 'Paydaş Yönetimi', emoji: '🤝' },
+            { name: 'SAP', key: 'sap', weight: 0.117, label: 'SAP Bilgisi', emoji: '💻' },
+            { name: 'Power BI', key: 'power_bi', weight: 0.088, label: 'Power BI Yetkinliği', emoji: '📊' },
+            { name: 'Tableau', key: 'tableau', weight: 0.088, label: 'Tableau Yetkinliği', emoji: '📈' },
+            { name: 'Excel', key: 'excel', weight: 0.052, label: 'MS Excel Kullanımı', emoji: '📄' },
+            { name: 'MATLAB', key: 'matlab', weight: 0.044, label: 'MATLAB Bilgisi', emoji: '🔬' },
+            { name: 'Raporlama', key: 'raporlama', weight: 0.037, label: 'Raporlama Becerileri', emoji: '📋' },
+            { name: 'MS Office', key: 'ms_office', weight: 0.036, label: 'MS Office Programları', emoji: '💼' },
+            { name: 'PowerPoint', key: 'powerpoint', weight: 0.033, label: 'MS PowerPoint Kullanımı', emoji: '🖥️' },
+            { name: 'İngilizce', key: 'ingilizce', weight: 0.020, label: 'İngilizce Seviyesi', emoji: '🇬🇧' }
+        ];
+
+        const jobPostingsData = [
+            {id:0, title:"Industrial Engineer (Araştırma ve Geliştirme) – İş Analisti", department:"Araştırma ve Geliştirme", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:2, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:1, title:"Lojistik Müdürü – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:2, tableau:0, excel:0, matlab:0, raporlama:1, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:2, title:"Satış Sonrası Hizmetler Müdürü – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:1, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:0, matlab:0, raporlama:2, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:3, title:"Industrial Engineer (Araştırma ve Geliştirme) – Metot Süreç Geliştirme Sorumlusu", department:"Araştırma ve Geliştirme", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:0, matlab:0, raporlama:1, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:4, title:"Lojistik Takım Lideri – Bakım / Onarım", department:"Bakım / Onarım", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:0, ms_office:0, powerpoint:0, ingilizce:0}},
+            {id:5, title:"İş Analisti – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:2, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:6, title:"Sistem Analisti – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:1, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:7, title:"İş Zekası Uzmanı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:2, tableau:2, excel:2, matlab:0, raporlama:1, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:8, title:"Veri Analisti – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:1, tableau:1, excel:2, matlab:0, raporlama:1, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:9, title:"Yazılım Geliştirme Uzmanı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:0, matlab:0, raporlama:0, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:10, title:"Network Uzmanı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:0, matlab:0, raporlama:0, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:11, title:"Siber Güvenlik Uzmanı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:0, matlab:0, raporlama:0, ms_office:0, powerpoint:0, ingilizce:1}},
+            {id:12, title:"IT Proje Yöneticisi – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:1, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:13, title:"Finansal Analist – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:1, tableau:0, excel:3, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:14, title:"Bütçe ve Raporlama Uzmanı – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:1, tableau:0, excel:3, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:15, title:"Muhasebe Uzmanı – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:2, powerpoint:0, ingilizce:1}},
+            {id:16, title:"İç Denetim Uzmanı – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:17, title:"Yatırımcı İlişkileri Uzmanı – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:3}},
+            {id:18, title:"İşe Alım Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:19, title:"Performans Değerlendirme Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:20, title:"Eğitim ve Gelişim Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:2, powerpoint:2, ingilizce:1}},
+            {id:21, title:"Ücret ve Yan Haklar Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:22, title:"İK İş Ortağı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:23, title:"Kalite Güvence Mühendisi – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:24, title:"Kalite Kontrol Sorumlusu – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:25, title:"Süreç İyileştirme Uzmanı – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:26, title:"Kalibrasyon Sorumlusu – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:27, title:"Dokümantasyon Sorumlusu – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:28, title:"Kurumsal İletişim Uzmanı – Kurumsal İletişim", department:"Kurumsal İletişim", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:29, title:"Pazarlama Uzmanı – Pazarlama", department:"Pazarlama", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:1, tableau:1, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:30, title:"Ürün Yöneticisi – Pazarlama", department:"Pazarlama", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:1, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:31, title:"Dijital Pazarlama Uzmanı – Pazarlama", department:"Pazarlama", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:1, tableau:1, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:32, title:"Marka Yöneticisi – Pazarlama", department:"Pazarlama", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:33, title:"Pazar Araştırma Uzmanı – Pazarlama", department:"Pazarlama", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:1, tableau:1, excel:2, matlab:1, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:34, title:"Satın Alma Uzmanı – Satın Alma", department:"Satın Alma", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:35, title:"Stratejik Planlama Uzmanı – Strateji", department:"Strateji", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:36, title:"Üretim Planlama Mühendisi – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:0, stakeholder_management:0, sap:2, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:37, title:"Üretim Mühendisi – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:38, title:"Vardiya Amiri – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:1, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:0}},
+            {id:39, title:"Metot Mühendisi – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:40, title:"Endüstriyel Verimlilik Uzmanı – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:41, title:"Tedarik Zinciri Planlama Uzmanı – Planlama", department:"Planlama", requirements:{leadership:0, stakeholder_management:1, sap:2, power_bi:1, tableau:0, excel:3, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:42, title:"Talep Planlama Uzmanı – Planlama", department:"Planlama", requirements:{leadership:0, stakeholder_management:0, sap:2, power_bi:1, tableau:1, excel:3, matlab:0, raporlama:2, ms_office:1, powerpoint:0, ingilizce:2}},
+            {id:43, title:"Stok Kontrol Uzmanı – Planlama", department:"Planlama", requirements:{leadership:0, stakeholder_management:0, sap:2, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:44, title:"Lojistik Optimizasyon Uzmanı – Planlama", department:"Planlama", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:1, tableau:1, excel:2, matlab:1, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:45, title:"Depo Yönetimi Sorumlusu – Planlama", department:"Planlama", requirements:{leadership:1, stakeholder_management:0, sap:1, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:0}},
+            {id:46, title:"İş Geliştirme Uzmanı - Genel", department:"Genel", requirements:{leadership:1, stakeholder_management:2, sap:0, power_bi:1, tableau:1, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:47, title:"Proje Yöneticisi - Genel", department:"Genel", requirements:{leadership:2, stakeholder_management:2, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:48, title:"Operasyonel Mükemmellik Uzmanı - Genel", department:"Genel", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:49, title:"Danışman (Endüstri Müh.) - Genel", department:"Genel", requirements:{leadership:1, stakeholder_management:2, sap:1, power_bi:2, tableau:1, excel:3, matlab:1, raporlama:3, ms_office:2, powerpoint:2, ingilizce:3}},
+            {id:50, title:"Sistem Geliştirme Mühendisi - Genel", department:"Genel", requirements:{leadership:0, stakeholder_management:1, sap:1, power_bi:1, tableau:1, excel:2, matlab:1, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:51, title:"Üretim Sistemleri Analisti – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:0, stakeholder_management:0, sap:2, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:1}},
+            {id:52, title:"Veri Madenciliği Uzmanı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:2, tableau:2, excel:2, matlab:2, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:53, title:"ERP Danışmanı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:1, stakeholder_management:2, sap:3, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:54, title:"İş Süreçleri Analisti – Genel", department:"Genel", requirements:{leadership:0, stakeholder_management:1, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:55, title:"Yalın Üretim Uzmanı – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:1}},
+            {id:56, title:"Maliyet Kontrol Uzmanı – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:1, tableau:0, excel:3, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:57, title:"Risk Yönetimi Uzmanı – Finans", department:"Finans", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:58, title:"Teknik Satın Alma Uzmanı – Satın Alma", department:"Satın Alma", requirements:{leadership:0, stakeholder_management:1, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:2}},
+            {id:59, title:"Organizasyonel Gelişim Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:60, title:"Müşteri Deneyimi Analisti – Pazarlama", department:"Pazarlama", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:1, tableau:1, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:61, title:"Ar-Ge Proje Lideri – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:2, stakeholder_management:2, sap:0, power_bi:1, tableau:0, excel:2, matlab:1, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:62, title:"Endüstri 4.0 Uygulamaları Müh. – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:1, tableau:1, excel:2, matlab:1, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:63, title:"Sürdürülebilirlik Uzmanı – Genel", department:"Genel", requirements:{leadership:1, stakeholder_management:2, sap:0, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:64, title:"İnovasyon Yöneticisi – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:2, stakeholder_management:2, sap:0, power_bi:1, tableau:0, excel:1, matlab:0, raporlama:2, ms_office:1, powerpoint:2, ingilizce:2}},
+            {id:65, title:"Kapasite Planlama Mühendisi – Planlama", department:"Planlama", requirements:{leadership:0, stakeholder_management:1, sap:2, power_bi:1, tableau:0, excel:3, matlab:0, raporlama:2, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:66, title:"İş Sağlığı ve Güvenliği Uzmanı – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:1}},
+            {id:67, title:"Global Lojistik Operasyonları Uzmanı – Planlama", department:"Planlama", requirements:{leadership:1, stakeholder_management:2, sap:2, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:3}},
+            {id:68, title:"E-ticaret Operasyonları Yöneticisi – Pazarlama", department:"Pazarlama", requirements:{leadership:2, stakeholder_management:1, sap:1, power_bi:1, tableau:1, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:69, title:"Yazılım Test Mühendisi – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:70, title:"CRM Analisti – Pazarlama", department:"Pazarlama", requirements:{leadership:0, stakeholder_management:1, sap:1, power_bi:1, tableau:1, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:71, title:"İş Analisti (Üretim Odaklı) – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:0, stakeholder_management:1, sap:2, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:1}},
+            {id:72, title:"Finansal Raporlama Müdürü – Finans", department:"Finans", requirements:{leadership:2, stakeholder_management:1, sap:2, power_bi:2, tableau:1, excel:3, matlab:0, raporlama:3, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:73, title:"İK Analitiği Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:2, tableau:1, excel:3, matlab:1, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:74, title:"Kalite Sistemleri Denetçisi – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:75, title:"Teknoloji Transfer Ofisi Uzmanı – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:1, stakeholder_management:2, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:2, ms_office:1, powerpoint:2, ingilizce:2}},
+            {id:76, title:"Ürün Geliştirme Mühendisi (Mekanik) – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:1, matlab:2, raporlama:1, ms_office:1, powerpoint:1, ingilizce:1}},
+            {id:77, title:"Satış Operasyonları Uzmanı – Pazarlama", department:"Pazarlama", requirements:{leadership:0, stakeholder_management:1, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:78, title:"Proses Güvenliği Mühendisi – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:1}},
+            {id:79, title:"Enerji Verimliliği Uzmanı – Bakım / Onarım", department:"Bakım / Onarım", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:1, tableau:0, excel:2, matlab:1, raporlama:2, ms_office:1, powerpoint:1, ingilizce:1}},
+            {id:80, title:"Veri Ambarı Uzmanı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:2, tableau:1, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:81, title:"Hazine Uzmanı – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:1, tableau:0, excel:3, matlab:0, raporlama:2, ms_office:2, powerpoint:1, ingilizce:2}},
+            {id:82, title:"Yetenek Yönetimi Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:83, title:"Müşteri İlişkileri Yöneticisi (B2B) – Pazarlama", department:"Pazarlama", requirements:{leadership:2, stakeholder_management:2, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:84, title:"Tedarikçi Kalite Geliştirme Müh. – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:1, stakeholder_management:2, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:85, title:"Gümrük Operasyonları Sorumlusu – Planlama", department:"Planlama", requirements:{leadership:0, stakeholder_management:1, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:86, title:"Patent ve Fikri Haklar Uzmanı – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:2, ms_office:1, powerpoint:1, ingilizce:3}},
+            {id:87, title:"Simülasyon Mühendisi – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:1, tableau:0, excel:1, matlab:3, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:88, title:"Otomasyon Sistemleri Mühendisi – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:1, stakeholder_management:1, sap:1, power_bi:0, tableau:0, excel:1, matlab:1, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:89, title:"İşletme Bütçe Analisti – Finans", department:"Finans", requirements:{leadership:0, stakeholder_management:0, sap:1, power_bi:1, tableau:0, excel:3, matlab:0, raporlama:3, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:90, title:"Çevik Proje Yöneticisi (Scrum Master) – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:2, stakeholder_management:2, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:91, title:"İşe Alım ve Yetenek Kazanımı Müdürü – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:2, stakeholder_management:2, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:92, title:"Altı Sigma Kara Kuşak – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:2, stakeholder_management:2, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:3, ms_office:1, powerpoint:2, ingilizce:2}},
+            {id:93, title:"Pazarlama İletişimi Yöneticisi – Pazarlama", department:"Pazarlama", requirements:{leadership:2, stakeholder_management:2, sap:0, power_bi:1, tableau:0, excel:1, matlab:0, raporlama:2, ms_office:2, powerpoint:3, ingilizce:2}},
+            {id:94, title:"Lojistik Ağ Tasarımı Uzmanı – Planlama", department:"Planlama", requirements:{leadership:1, stakeholder_management:1, sap:2, power_bi:1, tableau:1, excel:3, matlab:1, raporlama:2, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:95, title:"Ar-Ge Teşvikleri ve Proje Uzmanı – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:0, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:3, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:96, title:"Robotik Süreç Otomasyonu (RPA) Geliştiricisi – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:0, stakeholder_management:0, sap:0, power_bi:1, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:97, title:"Bakım Planlama Mühendisi – Bakım / Onarım", department:"Bakım / Onarım", requirements:{leadership:1, stakeholder_management:0, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:98, title:"Finansal Planlama ve Analiz (FP&A) Müdürü – Finans", department:"Finans", requirements:{leadership:2, stakeholder_management:1, sap:2, power_bi:2, tableau:1, excel:4, matlab:0, raporlama:3, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:99, title:"Çalışan İlişkileri Uzmanı – İnsan Kaynakları", department:"İnsan Kaynakları", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:2, powerpoint:1, ingilizce:1}},
+            {id:100, title:"Kalite Yönetim Sistemleri Baş Denetçisi – Kalite Yönetimi", department:"Kalite Yönetimi", requirements:{leadership:2, stakeholder_management:2, sap:1, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:3, ms_office:1, powerpoint:2, ingilizce:2}},
+            {id:101, title:"İçerik Pazarlama Stratejisti – Pazarlama", department:"Pazarlama", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:1, tableau:0, excel:1, matlab:0, raporlama:2, ms_office:2, powerpoint:2, ingilizce:2}},
+            {id:102, title:"Malzeme Planlama Sorumlusu – Planlama", department:"Planlama", requirements:{leadership:0, stakeholder_management:0, sap:2, power_bi:0, tableau:0, excel:2, matlab:0, raporlama:1, ms_office:1, powerpoint:0, ingilizce:1}},
+            {id:103, title:"Ar-Ge Merkezi Yöneticisi – Araştırma ve Geliştirme", department:"Araştırma ve Geliştirme", requirements:{leadership:3, stakeholder_management:3, sap:1, power_bi:1, tableau:0, excel:2, matlab:1, raporlama:3, ms_office:2, powerpoint:2, ingilizce:3}},
+            {id:104, title:"Bulut Bilişim Mimarı – Bilgi Teknolojileri / IT", department:"Bilgi Teknolojileri / IT", requirements:{leadership:1, stakeholder_management:1, sap:0, power_bi:0, tableau:0, excel:1, matlab:0, raporlama:1, ms_office:1, powerpoint:1, ingilizce:2}},
+            {id:105, title:"Sürekli İyileştirme Lideri (Kaizen) – Üretim / İmalat", department:"Üretim / İmalat", requirements:{leadership:2, stakeholder_management:2, sap:1, power_bi:1, tableau:0, excel:2, matlab:0, raporlama:2, ms_office:1, powerpoint:2, ingilizce:1}}
+        ];
+
+        const levelColorClasses = {
+            wrapper: ['level-wrapper-0', 'level-wrapper-1', 'level-wrapper-2', 'level-wrapper-3', 'level-wrapper-4', 'level-wrapper-5'],
+            select: ['level-select-0', 'level-select-1', 'level-select-2', 'level-select-3', 'level-select-4', 'level-select-5']
+        };
+
+        function getLevelText(levelValue) {
+            const levelInt = parseInt(levelValue);
+            if (levelInt === 0) return "Yok";
+            if (levelInt === 1) return "Temel";
+            if (levelInt === 2) return "Orta";
+            if (levelInt === 3) return "İyi";
+            if (levelInt === 4) return "Çok İyi";
+            if (levelInt === 5) return "Uzman";
+            return "";
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('competencyForm');
+            driverCompetencies.forEach(comp => {
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = `competency-item-wrapper ${levelColorClasses.wrapper[0]}`; 
+
+                const label = document.createElement('label');
+                label.htmlFor = `level-${comp.key}`;
+                label.className = 'dropdown-label';
+                label.innerHTML = `<span class="emoji">${comp.emoji || '🔹'}</span> ${comp.label} <span class="weight-info">(Ağırlık: ${comp.weight.toFixed(3)})</span>`;
+
+
+                const select = document.createElement('select');
+                select.id = `level-${comp.key}`;
+                select.name = comp.key;
+                select.className = `dropdown-select ${levelColorClasses.select[0]}`; 
+
+                for (let i = 0; i <= 5; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `${i} - ${getLevelText(i)}`;
+                    select.appendChild(option);
+                }
+
+                select.addEventListener('change', function() {
+                    const selectedLevel = parseInt(this.value);
+                    // Remove all existing level-wrapper classes before adding the new one
+                    levelColorClasses.wrapper.forEach(cls => wrapperDiv.classList.remove(cls));
+                    wrapperDiv.classList.add(levelColorClasses.wrapper[selectedLevel]);
+                    
+                    // Remove all existing level-select classes before adding the new one
+                    levelColorClasses.select.forEach(cls => select.classList.remove(cls));
+                    select.classList.add(levelColorClasses.select[selectedLevel]);
+                });
+                
+                wrapperDiv.appendChild(label);
+                wrapperDiv.appendChild(select);
+                form.appendChild(wrapperDiv);
+            });
+
+            const calculateButton = document.getElementById('calculateButton');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const modal = document.getElementById('jobDetailModal');
+            const closeModalButton = document.getElementById('closeModalButton');
+            const modalOkButton = document.getElementById('modalOkButton');
+            const modalJobTitle = document.getElementById('modalJobTitle');
+            const modalFullJobTitle = document.getElementById('modalFullJobTitle');
+            const modalJobDepartment = document.getElementById('modalJobDepartment');
+            const modalJobRequirements = document.getElementById('modalJobRequirements');
+
+            calculateButton.addEventListener('click', function() {
+                const candidateLevels = {};
+                driverCompetencies.forEach(comp => {
+                    candidateLevels[comp.key] = parseInt(document.getElementById(`level-${comp.key}`).value);
+                });
+
+                const jobScores = [];
+                const maxPossibleDiff = 5; 
+
+                jobPostingsData.forEach(job => {
+                    let totalWeightedScore = 0;
+                    let sumOfWeightsUsed = 0;
+
+                    driverCompetencies.forEach(comp => {
+                        const candidateLevel = candidateLevels[comp.key];
+                        const jobRequiredLevel = job.requirements[comp.key] !== undefined ? job.requirements[comp.key] : 0;
+                        const ahpWeight = comp.weight;
+
+                        const diff = Math.abs(candidateLevel - jobRequiredLevel);
+                        const normalizedDiff = diff / maxPossibleDiff;
+                        const skillMatchScore = 1 - normalizedDiff; 
+                        
+                        totalWeightedScore += ahpWeight * skillMatchScore;
+                        sumOfWeightsUsed += ahpWeight; 
+                    });
+                    
+                    const finalScore = sumOfWeightsUsed > 0 ? totalWeightedScore / sumOfWeightsUsed : 0;
+                    jobScores.push({ ...job, score: finalScore });
+                });
+
+                jobScores.sort((a, b) => b.score - a.score);
+                displayResults(jobScores.slice(0, 5));
+            });
+
+            function displayResults(topJobs) {
+                resultsContainer.innerHTML = ''; 
+                if (topJobs.length === 0) {
+                    resultsContainer.innerHTML = '<p class="text-slate-500 text-center py-4">Uygun ilan bulunamadı.</p>';
+                    return;
+                }
+
+                topJobs.forEach(job => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'result-item';
+
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'result-info';
+
+                    const titleP = document.createElement('p');
+                    titleP.className = 'result-title';
+                    titleP.textContent = job.title;
+
+                    const departmentP = document.createElement('p');
+                    departmentP.className = 'result-department';
+                    departmentP.textContent = `Departman: ${job.department}`;
+                    
+                    infoDiv.appendChild(titleP);
+                    infoDiv.appendChild(departmentP);
+                    
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'result-actions';
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'result-score';
+                    scoreSpan.textContent = job.score.toFixed(3);
+                    
+                    const showDetailButton = document.createElement('button');
+                    showDetailButton.className = 'show-detail-button';
+                    showDetailButton.textContent = 'İlanı Göster';
+                    showDetailButton.setAttribute('data-job-id', job.id);
+                    showDetailButton.addEventListener('click', function() {
+                        openModal(this.getAttribute('data-job-id'));
+                    });
+
+                    actionsDiv.appendChild(scoreSpan);
+                    actionsDiv.appendChild(showDetailButton);
+
+
+                    itemDiv.appendChild(infoDiv);
+                    itemDiv.appendChild(actionsDiv);
+                    resultsContainer.appendChild(itemDiv);
+                });
+            }
+
+            function openModal(jobId) {
+                const job = jobPostingsData.find(j => j.id == jobId);
+                if (job) {
+                    modalJobTitle.textContent = "İlan Detayları"; 
+                    modalFullJobTitle.textContent = job.title;
+                    modalJobDepartment.textContent = job.department;
+                    modalJobRequirements.innerHTML = ''; 
+
+                    driverCompetencies.forEach(comp => {
+                        const requiredLevel = job.requirements[comp.key] !== undefined ? job.requirements[comp.key] : 0;
+                        const li = document.createElement('li');
+                        li.className = 'flex justify-between items-center py-1.5 px-2 rounded-md';
+                        // Determine background and text color for the level badge inside modal
+                        let badgeBgClass = levelColorClasses.select[requiredLevel].split(' ').find(c => c.startsWith('bg-')) || 'bg-slate-100';
+                        let badgeTextClass = '';
+                        if (badgeBgClass.includes('red')) badgeTextClass = 'text-red-700';
+                        else if (badgeBgClass.includes('yellow') || badgeBgClass.includes('amber')) badgeTextClass = 'text-amber-700';
+                        else if (badgeBgClass.includes('green') || badgeBgClass.includes('emerald')) badgeTextClass = 'text-emerald-700';
+                        else if (badgeBgClass.includes('blue')) badgeTextClass = 'text-blue-700';
+                        else if (badgeBgClass.includes('purple') || badgeBgClass.includes('violet')) badgeTextClass = 'text-violet-700';
+                        else badgeTextClass = 'text-slate-700';
+
+
+                        li.innerHTML = `<span class="flex items-center"><span class="emoji">${comp.emoji || '🔹'}</span>${comp.label}:</span> <span class="font-semibold px-2.5 py-1 rounded-full text-xs ${badgeBgClass} ${badgeTextClass}">${getLevelText(requiredLevel)} (Seviye ${requiredLevel})</span>`;
+                        modalJobRequirements.appendChild(li);
+                    });
+                    modal.classList.remove('hidden');
+                    // Ensure smooth transition for modal
+                    requestAnimationFrame(() => {
+                         modal.classList.add('active');
+                    });
+                }
+            }
+
+            function closeModal() {
+                modal.classList.remove('active');
+                // Wait for opacity transition to finish before hiding
+                setTimeout(() => {
+                    if (!modal.classList.contains('active')) { // Check again in case it was re-opened quickly
+                        modal.classList.add('hidden');
+                    }
+                }, 300); 
+            }
+
+            closeModalButton.addEventListener('click', closeModal);
+            modalOkButton.addEventListener('click', closeModal);
+            // Close modal on overlay click
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+            // Close modal on Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Escape" && modal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</ht

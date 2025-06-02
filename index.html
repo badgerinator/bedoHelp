@@ -1,425 +1,634 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Endüstri Mühendisliği Yetkinlik Analizi</title>
+    <title>Endüstri Mühendisliği Yetkinlik Analizi ve Atama Optimizasyonu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Visualization & Content Choices:
-        - Overall Top 15 Skills: Goal: Inform. Viz: Bar Chart (Chart.js). Interaction: Hover for details. Justification: Clear ranking.
-        - Department-Specific Top Skills: Goal: Inform/Compare. Viz: Bar Chart (Chart.js). Interaction: Dynamic update on dept selection. Justification: Easy comparison of skill priorities within a dept.
-        - Technical Skills/Methodologies/Tasks Lists: Goal: Detail. Viz: HTML lists. Interaction: Dynamic update. Justification: Provides specific examples and tools.
-        - Common Software/Methodologies (Overall): Goal: Inform. Viz: Bar Charts (Chart.js). Justification: Highlights broadly applicable tools.
-        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .chart-container { position: relative; width: 100%; margin-left: auto; margin-right: auto; }
-        .nav-link { transition: all 0.3s ease; }
-        .nav-link.active { color: #0d9488; border-bottom-color: #0d9488; font-weight: 600; }
-        .nav-link:not(.active):hover { color: #14b8a6; border-bottom-color: #14b8a6; }
-        h2 { font-size: 1.75rem; font-weight: 600; margin-bottom: 1rem; color: #374151; }
-        h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; color: #1f2937; }
-        .content-section { display: none; }
-        .content-section.active { display: block; }
-        .tooltip {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            pointer-events: none;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff; /* Sky 50 */
+            color: #1e293b; /* Slate 800 */
+        }
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2.5rem; /* p-10 */
+            margin-bottom: 2.5rem; /* mb-10 */
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); /* shadow-lg */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            border-top: 4px solid #0d9488; /* Teal 600 */
+        }
+        .section-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); /* shadow-2xl */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 450px; /* Default height */
+            max-height: 55vh; /* Max height relative to viewport */
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 380px;
+                max-height: 65vh;
+            }
+        }
+        .sticky-nav {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 2rem; /* Increased top spacing */
+            align-self: flex-start;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .flowchart-step {
+            @apply bg-teal-50 border-2 border-teal-200 rounded-lg p-5 text-center transition-all duration-300 hover:bg-teal-100 hover:border-teal-400 hover:shadow-xl flex flex-col items-center justify-center min-w-[180px] h-32;
+        }
+        .flowchart-step span {
+             @apply text-3xl text-teal-600 mb-2;
+        }
+        .flowchart-arrow {
+            @apply text-teal-400 text-5xl mx-2 md:mx-4 flex items-center justify-center;
+        }
+        .kpi-card {
+            @apply bg-gradient-to-br from-orange-50 to-amber-100 border-2 border-orange-200 p-6 rounded-xl text-center flex flex-col justify-center items-center h-full;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.1);
+        }
+        .kpi-number {
+            @apply text-4xl md:text-5xl font-extrabold text-orange-600;
+        }
+        .kpi-label {
+            @apply text-base font-semibold text-slate-700 mt-2;
+        }
+        .fade-in-section {
             opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 10;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .nav-link {
+             @apply block py-2 px-3 rounded-md text-slate-700 hover:bg-teal-50 hover:text-teal-600 font-medium transition-colors duration-200;
+        }
+        .nav-link.active {
+            @apply bg-teal-500 text-white hover:bg-teal-600;
         }
     </style>
 </head>
-<body class="bg-stone-100 text-stone-800">
-    <header class="bg-white shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col sm:flex-row justify-between items-center py-4">
-                <h1 class="text-2xl sm:text-3xl font-bold text-teal-700 mb-2 sm:mb-0">Endüstri Mühendisliği Yetkinlik Analizi</h1>
-                <nav id="mainNav" class="flex flex-wrap justify-center sm:justify-end space-x-2 sm:space-x-3 lg:space-x-4">
-                    </nav>
-            </div>
+<body class="antialiased">
+
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-lg border-b-2 border-teal-500">
+        <div class="container mx-auto px-6 py-5">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-teal-700 tracking-tight">Yetkinlik Analizi & Atama Optimizasyonu Sunumu</h1>
         </div>
     </header>
 
-    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div id="overviewSection" class="content-section active space-y-8">
-            <div>
-                <h2>Genel Bakış</h2>
-                <p class="mb-4 text-lg text-stone-700">
-                    Bu analiz, endüstri mühendisliği pozisyonlarına yönelik iş ilanlarından elde edilen verilere dayanmaktadır. Sektörde hem teknik hem de sosyal becerilere yönelik belirgin bir talep olduğunu göstermektedir.
-                    "Analitik Düşünme", "Problem Çözme", "MS Office" (özellikle Excel) ve "İletişim Becerileri" gibi temel yetkinlikler tüm departmanlar genelinde öne çıkmaktadır.
-                    "ERP Bilgisi" de departmanlar arası kritik bir teknik yetkinlik olarak dikkat çekmektedir. Veri okuryazarlığının (SQL, Power BI) ve İngilizce bilgisinin önemi artmaktadır.
-                </p>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-                        <h3>En Çok Talep Edilen İlk 15 Genel Yetkinlik</h3>
-                        <p class="text-sm text-stone-600 mb-3">60 iş ilanı genelinde en sık rastlanan teknik ve sosyal beceriler.</p>
-                        <div class="chart-container h-96 md:h-[450px]">
-                            <canvas id="overallSkillsChart"></canvas>
-                        </div>
-                    </div>
-                     <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-                        <h3>Yaygın Yazılım Araçları</h3>
-                        <p class="text-sm text-stone-600 mb-3">İş ilanlarında en sık belirtilen yazılımlar ve ERP sistemleri.</p>
-                        <div class="chart-container h-96 md:h-[450px]">
-                            <canvas id="commonSoftwareChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg lg:col-span-2">
-                        <h3>Anahtar Metodolojiler</h3>
-                         <p class="text-sm text-stone-600 mb-3">Endüstri mühendisliği rollerinde sıkça talep edilen temel metodolojiler.</p>
-                        <div class="chart-container h-80 md:h-[400px]">
-                            <canvas id="keyMethodologiesChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <main class="container mx-auto px-6 py-10">
+        <div class="lg:grid lg:grid-cols-12 lg:gap-10">
+            <aside class="hidden lg:block lg:col-span-3">
+                <nav id="toc-nav" class="sticky-nav">
+                    <h3 class="text-xl font-bold text-teal-700 mb-5 px-3">İçindekiler</h3>
+                    <ul class="space-y-1">
+                        <li><a href="#genel-bakis" class="nav-link">Projeye Genel Bakış</a></li>
+                        <li><a href="#veri-kesfi" class="nav-link">Aşama 1: Yetkinlik Keşfi</a></li>
+                        <li><a href="#analiz" class="nav-link">Aşama 2: Analiz & Önceliklendirme</a></li>
+                        <li><a href="#atama" class="nav-link">Aşama 3: Optimal Atama</a></li>
+                        <li><a href="#derin-analiz" class="nav-link">Aşama 4: Derinlemesine Analiz</a></li>
+                        <li><a href="#sonuc" class="nav-link">Sonuç ve Değerlendirme</a></li>
+                    </ul>
+                </nav>
+            </aside>
 
-        <div id="departmentDetailSection" class="content-section space-y-6">
-            <h2 id="departmentName" class="border-b-2 border-teal-500 pb-2"></h2>
-            <p id="departmentIntro" class="text-lg text-stone-700 mb-6"></p>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div class="lg:col-span-3 bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-                    <h3 id="departmentSkillsTitle"></h3>
-                    <div class="chart-container h-96 md:h-[500px]">
-                        <canvas id="departmentSkillsChart"></canvas>
+            <div class="lg:col-span-9">
+                <section id="genel-bakis" class="fade-in-section section-card">
+                    <h2 class="text-3xl md:text-4xl font-bold text-teal-600 mb-6 pb-2 border-b-2 border-orange-400">Projeye Genel Bakış</h2>
+                    <p class="text-lg text-slate-700 mb-6 leading-relaxed">
+                        Günümüzün rekabetçi iş piyasasında, Endüstri Mühendisliği (EM) alanında doğru adayı doğru pozisyonla eşleştirmek, kurumların verimliliği ve sürdürülebilir başarısı için hayati bir zorluk teşkil etmektedir. Bu projenin temel amacı, EM pozisyonları için kritik yetkinliklerin belirlenmesi, bu yetkinliklerin kendi aralarındaki karmaşık ilişkilerin ve göreceli önemlerinin analiz edilmesi ve nihayetinde adayların pozisyonlara en uygun şekilde atanmasını sağlayacak bütünleşik, çok aşamalı bir metodoloji geliştirmek ve uygulamaktır.
+                    </p>
+                     <p class="text-slate-700 mb-8 leading-relaxed">
+                        Bu bütünleşik yaklaşım, Doğal Dil İşleme (DDİ), Bulanık Çok Kriterli Karar Verme (Bulanık DEMATEL ve AHP) ve 0-1 Tamsayılı Programlama gibi sofistike teknikleri bir araya getirerek, insan kaynakları süreçlerine nesnel ve veri odaklı bir bakış açısı sunmaktadır.
+                    </p>
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mb-8 text-center">Proje Metodolojisi Akış Şeması</h3>
+                    <div class="w-full overflow-x-auto pb-6">
+                        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center min-w-max space-y-4 md:space-y-0 md:space-x-2">
+                            <div class="flowchart-step"><span>📊</span><p class="font-semibold mt-1">Veri Toplama & Ön İşleme</p></div>
+                            <div class="flowchart-arrow hidden md:flex">→</div><div class="flowchart-arrow md:hidden self-center">↓</div>
+                            <div class="flowchart-step"><span>🧠</span><p class="font-semibold mt-1">Bulanık DEMATEL</p><p class="text-sm text-slate-500">Etkileşim Analizi</p></div>
+                            <div class="flowchart-arrow hidden md:flex">→</div><div class="flowchart-arrow md:hidden self-center">↓</div>
+                            <div class="flowchart-step"><span>⚖️</span><p class="font-semibold mt-1">Bulanık AHP</p><p class="text-sm text-slate-500">Ağırlıklandırma</p></div>
+                            <div class="flowchart-arrow hidden md:flex">→</div><div class="flowchart-arrow md:hidden self-center">↓</div>
+                            <div class="flowchart-step"><span>🎯</span><p class="font-semibold mt-1">0-1 Atama Modeli</p><p class="text-sm text-slate-500">Optimizasyon</p></div>
+                            <div class="flowchart-arrow hidden md:flex">→</div><div class="flowchart-arrow md:hidden self-center">↓</div>
+                            <div class="flowchart-step"><span>💡</span><p class="font-semibold mt-1">Sonuç & Analiz</p></div>
+                        </div>
                     </div>
-                </div>
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-                        <h3>Öne Çıkan Teknik Beceriler</h3>
-                        <ul id="techSkillsList" class="list-disc list-inside text-stone-700 space-y-1"></ul>
+                </section>
+                
+                <section id="veri-kesfi" class="fade-in-section section-card">
+                    <h2 class="text-3xl md:text-4xl font-bold text-teal-600 mb-6 pb-2 border-b-2 border-orange-400">Aşama 1: Veri Dünyasından Yetkinlik Keşfine</h2>
+                    <p class="text-lg text-slate-700 mb-8 leading-relaxed">Bu aşama, ham verilerden başlayarak tüm sonraki analizler için temel oluşturan, yapılandırılmış ve analize uygun bir yetkinlik setine ulaşma yolculuğunu detaylandırmaktadır.</p>
+                    
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mb-5">Metin Ön İşleme Süreci</h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">İş ilanları ve özgeçmişlerdeki metinler, yetkinlik çıkarımının doğruluğunu artırmak amacıyla `spaCy` gibi gelişmiş araçlar kullanılarak kapsamlı bir ön işleme sürecinden geçirilmiştir. Özellikle Türkçe'nin eklemeli dil yapısına uygun olarak yapılan lemmatizasyon (köke indirgeme), farklı çekim eklerine sahip kelimeleri standartlaştırarak analiz kalitesini artırmıştır.</p>
+                     <div class="bg-sky-50 border-2 border-sky-200 rounded-xl p-8 shadow-inner">
+                        <p class="font-mono text-slate-800 text-center text-lg mb-4 bg-white p-3 rounded-md shadow">
+                            "İleri derecede Excel kullanabilen ve raporlama becerileri güçlü bir takım arkadaşı arıyoruz."
+                        </p>
+                        <div class="text-center text-4xl font-bold my-5 text-teal-500">↓</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center mb-5">
+                            <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500"><span class="font-bold text-teal-700 text-lg">Temizleme</span><p class="text-sm text-slate-600 mt-1">HTML, noktalama işaretleri kaldırılır.</p></div>
+                             <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500"><span class="font-bold text-teal-700 text-lg">Küçük Harf</span><p class="text-sm text-slate-600 mt-1">Tüm metin küçük harfe çevrilir.</p></div>
+                             <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500"><span class="font-bold text-teal-700 text-lg">Durak Kelime</span><p class="text-sm text-slate-600 mt-1">"ve, bir" gibi anlamsız kelimeler atılır.</p></div>
+                             <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500"><span class="font-bold text-teal-700 text-lg">Lemmatizasyon</span><p class="text-sm text-slate-600 mt-1">Kelimeler köklerine indirgenir.</p></div>
+                        </div>
+                         <div class="text-center text-4xl font-bold my-5 text-teal-500">↓</div>
+                        <p class="font-mono bg-teal-50 text-teal-800 text-center text-lg p-4 rounded-md shadow-md border border-teal-300">
+                           "ileri excel kullan raporla beceri güçlü takım arkadaşı ara"
+                        </p>
                     </div>
-                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-                        <h3>Öne Çıkan Metodolojiler</h3>
-                        <ul id="methodologiesList" class="list-disc list-inside text-stone-700 space-y-1"></ul>
+                </section>
+                
+                <section id="analiz" class="fade-in-section section-card">
+                    <h2 class="text-3xl md:text-4xl font-bold text-teal-600 mb-6 pb-2 border-b-2 border-orange-400">Aşama 2: Yetkinliklerin Kalbine Yolculuk: Analiz ve Önceliklendirme</h2>
+                    <p class="text-lg text-slate-700 mb-8 leading-relaxed">Belirlenen yetkinliklerin aralarındaki karşılıklı bağımlılıkları anlamak ve göreceli önemlerini belirlemek amacıyla Bulanık DEMATEL ve Bulanık AHP yöntemleri sıralı olarak uygulanmıştır.</p>
+                    
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mb-5">Bulanık DEMATEL ile Etkileşim Haritası</h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">Uzman görüşleri alınarak faktörler (yetkinlikler, deneyim, eğitim) arasındaki neden-sonuç ilişkileri ortaya çıkarılmıştır. Grafikte yatay eksen (D-R), faktörün net etkileyen mi (pozitif değer) yoksa etkilenen mi (negatif değer) olduğunu gösterirken; dikey eksen (D+R) ise faktörün sistemdeki toplam önemini belirtir. Bu analiz, diğer yetkinlikleri en çok tetikleyen "sürücü" yetkinlikleri belirlememizi sağlamıştır.</p>
+                    <div class="chart-container h-[550px] max-h-[70vh] bg-white p-4 rounded-lg shadow-inner">
+                        <canvas id="dematelChart"></canvas>
                     </div>
-                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-                        <h3>Örnek Görevler / Beklentiler</h3>
-                        <ul id="tasksList" class="list-disc list-inside text-stone-700 space-y-1"></ul>
+
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mt-12 mb-5">Bulanık AHP ile Stratejik Ağırlıklandırma</h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">DEMATEL analiziyle belirlenen "sürücü" yetkinlikler, yine uzman görüşleriyle ikili karşılaştırmalara tabi tutularak Bulanık AHP yöntemiyle ağırlıklandırılmıştır. Bu, atama modelinde hangi yetkinliklere daha fazla önem verileceğini belirleyen kritik bir adımdır. Analiz sonucunda en yüksek ağırlığa sahip yetkinlikler belirlenmiştir.</p>
+                     <div class="md:grid md:grid-cols-3 md:gap-8 items-stretch">
+                        <div class="md:col-span-2 chart-container h-[450px] bg-white p-4 rounded-lg shadow-inner">
+                            <canvas id="ahpChart"></canvas>
+                        </div>
+                        <div class="kpi-card mt-8 md:mt-0">
+                            <div>
+                                <p class="kpi-label">AHP Tutarlılık Oranı (CR)</p>
+                                <p class="kpi-number">0.1040</p>
+                                <p class="text-sm text-slate-600 mt-3 leading-relaxed">
+                                    Bu değer, uzman görüşlerinin kabul edilebilir tutarlılık eşiğine (≤0.10) çok yakın olduğunu gösterir. Bulanık mantık kullanımı, bu tür küçük tutarsızlıkları yönetmeye yardımcı olur ve modelin sağlamlığına katkıda bulunur.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </section>
+
+                <section id="atama" class="fade-in-section section-card">
+                    <h2 class="text-3xl md:text-4xl font-bold text-teal-600 mb-6 pb-2 border-b-2 border-orange-400">Aşama 3: Bilimsel Eşleştirme: Optimal Aday-Pozisyon Ataması</h2>
+                    <p class="text-lg text-slate-700 mb-8 leading-relaxed">Tüm analizlerin çıktısı olan yetkinlik ağırlıkları ve uyum skorları, adayları pozisyonlara en uygun şekilde atayan bir 0-1 Tamsayılı Programlama modeline girdi olarak sunulmuştur.</p>
+
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mb-5">Uyumluluk Skoru (S<sub>ij</sub>) Hesaplama</h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">Her bir aday-pozisyon çifti için, sürücü yetkinliklere ne kadar sahip oldukları ve bu yetkinliklerin AHP ile belirlenen ağırlıkları dikkate alınarak bir uyum skoru hesaplanmıştır. Bu skor, matematiksel modelin temelini oluşturur ve en uygun eşleşmelerin belirlenmesinde kilit rol oynar.</p>
+
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mt-10 mb-5">Optimal Atama Sonuçları</h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">Matematiksel model, PuLP kütüphanesi ve CBC çözücüsü kullanılarak çözülmüş ve toplam uyum skorunu maksimize eden en iyi aday-pozisyon eşleşmeleri belirlenmiştir. Aşağıdaki histogram, model tarafından önerilen eşleşmelerin uyum skorlarının dağılımını göstermektedir. Skorların yüksek bir aralıkta yoğunlaşması, modelin başarılı ve yüksek uyumlu eşleşmeler ürettiğinin bir göstergesidir.</p>
+                     <div class="chart-container bg-white p-4 rounded-lg shadow-inner">
+                        <canvas id="compatibilityScoresChart"></canvas>
+                    </div>
+                </section>
+                
+                <section id="derin-analiz" class="fade-in-section section-card">
+                    <h2 class="text-3xl md:text-4xl font-bold text-teal-600 mb-6 pb-2 border-b-2 border-orange-400">Aşama 4: Verinin Derinliklerinde: Departman Bazlı Analizler</h2>
+                    <p class="text-lg text-slate-700 mb-8 leading-relaxed">Bu bölümde, belirlenen yetkinliklerin Endüstri Mühendisliği departmanlarına göre nasıl farklılaştığı incelenerek, her bir departmanın kendine özgü "yetkinlik imzası" ortaya çıkarılmıştır.</p>
+
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mb-5">Genel Yetkinliklerin Pareto Analizi</h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">İş ilanlarında en çok talep edilen yetkinlikleri belirlemek için bir Pareto analizi yapılmıştır. Grafik, en sık geçen ilk 20 yetkinliği göstermekte ve kümülatif yüzde çizgisi, bu yetkinliklerin toplam talebin ne kadar büyük bir kısmını oluşturduğunu ortaya koymaktadır. Bu analiz, piyasadaki en değerli becerilere odaklanmamızı sağlar ve "azın çoğa etkisi" prensibini vurgular.</p>
+                     <div class="chart-container h-[550px] max-h-[70vh] bg-white p-4 rounded-lg shadow-inner">
+                        <canvas id="paretoChart"></canvas>
+                    </div>
+
+                    <h3 class="text-2xl md:text-3xl font-semibold text-orange-600 mt-12 mb-5">Departmanların Yetkinlik Haritası</h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">Aşağıdaki ısı haritası, farklı departmanların hangi yetkinliklere daha fazla önem verdiğini görselleştirmektedir. Renk yoğunluğu, bir yetkinliğin ilgili departmandaki iş ilanlarında ne sıklıkta talep edildiğini gösterir. Bu harita, örneğin "Planlama" departmanının "sap" ve "excel" gibi yetkinliklere odaklanırken, "Üretim / İmalat" departmanının "üretim_planlama" ve "yalın_üretim" gibi yetkinlikleri önceliklendirdiğini net bir şekilde göstermektedir.</p>
+                    <div id="departmentHeatmap" class="w-full h-[750px] bg-white p-2 rounded-lg shadow-inner overflow-hidden"></div>
+                </section>
+                
+                <section id="sonuc" class="fade-in-section section-card">
+                     <h2 class="text-3xl md:text-4xl font-bold text-teal-600 mb-6 pb-2 border-b-2 border-orange-400">Sonuç ve Projenin Katkıları</h2>
+                    <p class="text-lg text-slate-700 mb-8 leading-relaxed">Bu çalışma, Endüstri Mühendisliği alanında yetenek yönetimine daha veri odaklı, nesnel ve etkili bir yaklaşım sunarak hem akademik literatüre hem de pratik uygulamalara önemli katkılarda bulunmaktadır.</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-teal-50 p-8 rounded-xl border-l-4 border-teal-500 shadow-md">
+                            <h3 class="text-2xl font-bold text-teal-700 mb-4">Metodolojik Katkılar</h3>
+                            <ul class="list-disc list-inside space-y-3 text-slate-700 leading-relaxed">
+                                <li>Türkçe metinler için DDİ, Bulanık ÇKKV ve optimizasyonu birleştiren yenilikçi bir çerçeve sunulmuştur.</li>
+                                <li>Uzman görüşlerindeki belirsizlikler Bulanık Mantık ile etkin bir şekilde modellenmiştir.</li>
+                                <li>DEMATEL ile "sürücü" yetkinliklerin belirlenmesi, AHP sürecini daha odaklı hale getirmiştir.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-orange-50 p-8 rounded-xl border-l-4 border-orange-500 shadow-md">
+                            <h3 class="text-2xl font-bold text-orange-700 mb-4">Pratik Katkılar</h3>
+                             <ul class="list-disc list-inside space-y-3 text-slate-700 leading-relaxed">
+                                <li><b>İK Profesyonelleri:</b> Nesnel bir aday değerlendirme ve karar destek aracı.</li>
+                                <li><b>Eğitim Kurumları:</b> Sektör taleplerine uygun müfredat geliştirme için bir rehber.</li>
+                                <li><b>Mühendisler ve Öğrenciler:</b> Kariyer planlama ve kişisel gelişim için değerli bir kaynak.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </main>
-
-    <footer class="text-center py-8 mt-12 border-t border-stone-300">
-        <p class="text-sm text-stone-600">&copy; 2024 Endüstri Mühendisliği Yetkinlik Analizi. Veriler örnek bir analize dayanmaktadır.</p>
+    
+    <footer class="bg-slate-900 text-sky-100 mt-16 py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-sm">&copy; 2025 Yetkinlik Analizi Projesi. Tüm hakları saklıdır.</p>
+            <p class="text-xs mt-2 text-slate-400">Bu sayfa, bir tez projesi sunumu için hazırlanmıştır.</p>
+        </div>
     </footer>
 
     <script>
-        const reportData = {
-            overallTopSkills: [
-                { name: "MS Office / Excel Yetkinliği", freq: 55, total: 60 },
-                { name: "Analitik Düşünme", freq: 48, total: 60 },
-                { name: "İletişim Becerileri", freq: 45, total: 60 },
-                { name: "Problem Çözme", freq: 43, total: 60 },
-                { name: "Raporlama Yetkinliği", freq: 40, total: 60 },
-                { name: "ERP Bilgisi", freq: 35, total: 60 },
-                { name: "Takım Çalışmasına Yatkınlık", freq: 33, total: 60 },
-                { name: "Süreç İyileştirme / Geliştirme", freq: 30, total: 60 },
-                { name: "Planlama Yetkinliği (Genel)", freq: 28, total: 60 },
-                { name: "İngilizce Bilgisi", freq: 25, total: 60 },
-                { name: "Stok Kontrolü / Yönetimi", freq: 20, total: 60 },
-                { name: "Veri Analizi", freq: 18, total: 60 },
-                { name: "Yalın Üretim (Lean) Bilgisi", freq: 15, total: 60 },
-                { name: "Proje Yönetimi", freq: 14, total: 60 },
-                { name: "Kalite Kontrol / Yönetimi Bilgisi", freq: 13, total: 60 },
-            ],
-            commonSoftware: [
-                { name: "MS Excel", freq: 55, total: 60, depts: "Tüm Departmanlar" },
-                { name: "SAP (Genel)", freq: 16, total: 60, depts: "Planlama, Tedarik, Üretim, Operasyon, BT" },
-                { name: "Netsis", freq: 8, total: 60, depts: "Planlama, Üretim, BT" },
-                { name: "Logo (Tiger vb.)", freq: 7, total: 60, depts: "Üretim, Planlama, BT" },
-                { name: "SQL", freq: 6, total: 60, depts: "Operasyon, Üretim, BT, Planlama" },
-                { name: "AutoCAD", freq: 4, total: 60, depts: "Mühendislik (Tasarım), Teknik (Şantiye)" },
-                { name: "Power BI", freq: 3, total: 60, depts: "Operasyon, Mühendislik" },
-                { name: "Primavera P6", freq: 3, total: 60, depts: "Planlama (İnşaat), Teknik (Şantiye)" },
-            ],
-            keyMethodologies: [
-                { name: "Süreç İyileştirme (Genel)", freq: 30, total: 60, depts: "Üretim, Operasyon, Planlama, BT, Mühendislik" },
-                { name: "Yalın Üretim (Genel)", freq: 15, total: 60, depts: "Üretim, Operasyon, Lojistik" },
-                { name: "5S", freq: 10, total: 60, depts: "Üretim, Operasyon, Lojistik, Planlama" },
-                { name: "Kaizen", freq: 9, total: 60, depts: "Üretim, Operasyon, Planlama" },
-                { name: "Zaman Etüdü", freq: 7, total: 60, depts: "Üretim, Operasyon, Planlama" },
-                { name: "ERP/MRP Bilgisi (Metodoloji)", freq: 7, total: 60, depts: "Planlama, Üretim, BT" },
-            ],
-            departments: {
-                "uretim-imalat": {
-                    id: "uretim-imalat",
-                    name: "Üretim / İmalat",
-                    intro: "Üretim ve İmalat departmanları, endüstri mühendislerinin operasyonel verimliliği artırma, üretim süreçlerini optimize etme ve kaliteyi güvence altına alma konularında merkezi bir rol üstlenmesini bekler. Bu departmanlarda ERP sistemleri operasyonel kontrol, ürün ağacı yönetimi ve sürekli iyileştirme için kritik öneme sahiptir.",
-                    topSkills: [
-                        { name: "Süreç Analizi ve İyileştirme", freq: 11, total: 14, examples: ["Üretim süreci analizi, Süreç iyileştirme projeleri", "Hatalı ürün tespiti ve müdahale"] },
-                        { name: "ERP Bilgisi (Logo, Netsis, MES vb.)", freq: 10, total: 14, examples: ["ERP sisteminin kurulumu ve sürdürülebilirliği", "Netsis kullanımıyla süreç optimizasyonu", "Logo ERP, SQL ve MES sistem bilgisi"] },
-                        { name: "Üretim Planlama", freq: 9, total: 14, examples: ["Üretim planlama, İş emirleri oluşturma", "Sipariş bazlı üretim planlama"] },
-                        { name: "Yalın Üretim Bilgisi (5S, Kaizen)", freq: 8, total: 14, examples: ["5S, yalın üretim, 6 Sigma bilgisi", "Yalın üretim tekniklerini (Kanban, Kaizen vb.) uygulamak"] },
-                        { name: "Raporlama", freq: 8, total: 14, examples: ["Günlük, haftalık, aylık raporlama", "Üretim performans izleme ve raporlama"] },
-                        { name: "Stok Kontrolü / Yönetimi", freq: 7, total: 14, examples: ["Stok takibi, mikro sistem kullanımı", "Malzeme akış düzenleme"] },
-                        { name: "Ürün Ağacı (BoM) Yönetimi", freq: 6, total: 14, examples: ["Ürün ağacı oluşturma ve kontrolü", "Yeni ürünler için BoM hazırlama"] },
-                        { name: "Kalite Kontrol / Yönetimi", freq: 6, total: 14, examples: ["Kalite, maliyet ve zaman kriterlerine uygunluk", "Kalite süreçlerinin iyileştirilmesi"] },
-                    ],
-                    technicalSkillsDetails: ["ERP (Netsis, Logo, MES, SQL)", "MS Office (İleri Excel)", "Ürün Ağacı (BoM)", "Teknik Resim Okuma"],
-                    methodologiesDetails: ["Yalın Üretim (5S, Kaizen, Kanban)", "Süreç Analizi", "Verimlilik Artırma Projeleri", "Kalite Kontrol Standartları"]
-                },
-                "planlama": {
-                    id: "planlama",
-                    name: "Planlama",
-                    intro: "Planlama departmanları, talebi öngörmek, üretim programlarını oluşturmak, kaynakları etkin bir şekilde tahsis etmek ve tedarik zinciri süreçlerini koordine etmek gibi kritik görevleri üstlenir. ERP sistemleri ve İleri Excel bu departmanın temel araçlarıdır.",
-                    topSkills: [
-                        { name: "Üretim Planlama", freq: 17, total: 18, examples: ["Uzun ve kısa dönem planlama süreçleri", "SAP PP/PI, Netsis, Logo Tiger, Axapta, Canias, ABAS, ICRON kullanımı"] },
-                        { name: "ERP Bilgisi", freq: 17, total: 18, examples: ["SAP (PP, MM, PI), Netsis, Logo Tiger, Axapta, Canias, ABAS sistemlerinde uzmanlık"] },
-                        { name: "Malzeme İhtiyaç Planlama (MRP)", freq: 14, total: 18, examples: ["SAP PP üzerinden MRP çalıştırma", "Malzeme tedarik süreçlerini planlama"] },
-                        { name: "İleri Düzey Excel", freq: 12, total: 18, examples: ["Analiz, raporlama ve çizelgeleme için Excel kullanımı", "Excel makroları oluşturma"] },
-                        { name: "Raporlama", freq: 12, total: 18, examples: ["KPI takibi ve raporlaması (servis seviyesi, stok gün sayısı)", "PowerPoint sunumları hazırlama"] },
-                        { name: "Stok Kontrolü / Optimizasyonu", freq: 11, total: 18, examples: ["Stok seviyelerini optimize etme", "ERP sistemleri üzerinden stok yönetimi"] },
-                        { name: "Kapasite Planlama", freq: 10, total: 18, examples: ["Üretim kapasitesini planlama", "Darboğaz analizi"] },
-                    ],
-                    technicalSkillsDetails: ["ERP (SAP PP/MM/PI, Netsis, Logo Tiger, Axapta, Canias, ABAS)", "İleri Excel (Makrolar)", "Primavera P6 (Proje bazlı)", "ICRON", "SQL (Temel)"],
-                    methodologiesDetails: ["MRP / MRP II", "Talep Tahminleme", "Kapasite Planlama Teknikleri", "Stok Optimizasyon Modelleri"]
-                },
-                "operasyon-surec-gelistirme": {
-                    id: "operasyon-surec-gelistirme",
-                    name: "Operasyon / Süreç Geliştirme",
-                    intro: "Operasyon ve Süreç Geliştirme departmanları, işletmenin verimliliğini, etkinliğini ve genel performansını artırmak için süreçlerin sürekli olarak analiz edilmesi ve iyileştirilmesinden sorumludur. Yalın üretim metodolojileri ve veri analizi bu alanda kilit rol oynar.",
-                    topSkills: [
-                        { name: "Yalın Üretim Bilgisi ve Araçları", freq: 4, total: 4, examples: ["5S, Kaizen, SMED, VSM, Kanban, TPM, Heijunka uygulamaları", "Yalın dönüşüm projeleri yönetme"] },
-                        { name: "Sürekli İyileştirme", freq: 4, total: 4, examples: ["Sürekli iyileştirme kültürü oluşturma", "Değer Akış Haritalama, Günlük Yönetim Sistemleri"] },
-                        { name: "Süreç Analizi ve İyileştirme", freq: 4, total: 4, examples: ["Veri odaklı iyileştirme", "Süreç döngü süresi ölçümü ve optimizasyonu"] },
-                        { name: "Veri Analizi ve Raporlama (Power BI, Excel, SQL)", freq: 3, total: 4, examples: ["İleri Excel, SQL ile veri çekme ve analiz", "Power BI ile görsel raporlama", "Görsel Yönetim panoları oluşturma"] },
-                        { name: "Proje Yönetimi", freq: 3, total: 4, examples: ["Sürekli iyileştirme projelerini yönetmek", "Proje ekiplerine liderlik etmek"] },
-                        { name: "MTM / Zaman Etüdü / REFA", freq: 2, total: 4, examples: ["MTM, Zaman Etüdü, REFA standartlarını uygulama", "İş ölçümü ve standart zaman belirleme"] },
-                    ],
-                    technicalSkillsDetails: ["İleri Excel", "SQL", "Power BI", "SAP (Veri çekme)", "Visio/Benzeri süreç modelleme araçları"],
-                    methodologiesDetails: ["Yalın Üretim (5S, Kaizen, SMED, VSM, Kanban, TPM, Heijunka)", "Altı Sigma", "MTM, Zaman Etüdü, REFA", "Sürekli İyileştirme (Kaizen)", "Değer Akış Haritalama (VSM)"]
-                },
-                "muhendislik": {
-                    id: "muhendislik",
-                    name: "Mühendislik (Genel/Tasarım)",
-                    intro: "Mühendislik başlığı altındaki roller, genel mühendislik desteği, analitik görevler veya daha spesifik tasarım ve uygulama odaklı sorumlulukları içerebilir. MS Office ve problem çözme yetenekleri temeldir; tasarım odaklı rollerde CAD/CAM bilgisi önem kazanır.",
-                    topSkills: [
-                        { name: "Analitik Düşünme", freq: 7, total: 7, examples: ["Analitik düşünme ve yaratıcılıkla problem çözme", "Veri analizi ve sunum becerisi"] },
-                        { name: "MS Office Yetkinliği", freq: 7, total: 7, examples: ["Microsoft Office programlarına ileri düzeyde hakimiyet (Excel, Word, PowerPoint)"] },
-                        { name: "Problem Çözme", freq: 6, total: 7, examples: ["Üretim ve süreç sorunlarına çözüm geliştirme", "Kök neden analizi yapma"] },
-                        { name: "Raporlama", freq: 5, total: 7, examples: ["Teknik rapor hazırlama", "Proje ilerleme raporları sunma"] },
-                        { name: "İletişim Becerileri", freq: 5, total: 7, examples: ["Yazılı ve sözlü iletişim becerilerinin gelişmiş olması", "Paydaşlarla etkin iletişim kurma"] },
-                        { name: "CAD/CAM Bilgisi (AutoCAD, SolidWorks vb.)", freq: 2, total: 7, examples: ["AutoCAD, SolidWorks, 3ds Max programlarından en az ikisini ileri düzey kullanabilme (Tasarım odaklı rollerde)"] },
-                        { name: "ERP Bilgisi", freq: 3, total: 7, examples: ["ERP sistemleri hakkında genel bilgi sahibi olma (Genel rollerde)"] },
-                    ],
-                    technicalSkillsDetails: ["MS Office (Excel, PowerPoint, Word)", "AutoCAD, SolidWorks, 3ds Max (Tasarım rolleri)", "ERP sistemleri (Temel düzey)"],
-                    methodologiesDetails: ["Proje Yönetimi Temelleri", "Problem Çözme Teknikleri (5 Neden, Balık Kılçığı)", "Teknik Raporlama Standartları"]
-                },
-                 "bilgi-teknolojileri": {
-                    id: "bilgi-teknolojileri",
-                    name: "Bilgi Teknolojileri / IT",
-                    intro: "BT departmanlarındaki endüstri mühendisleri, ERP sistemlerinin yönetimi, geliştirilmesi, veri analizi ve süreçlerin BT altyapısıyla entegrasyonuna odaklanır. Derinlemesine ERP bilgisi, SQL ve sistem analizi bu rollerin temelini oluşturur.",
-                    topSkills: [
-                        { name: "ERP Sistemleri Bilgisi (Derinlemesine)", freq: 6, total: 6, examples: ["Logo Tiger 3, SAP (SF, EWM, MM), Netsis gibi sistemlerde uzmanlık", "ERP geliştirme ve özelleştirme"] },
-                        { name: "Sistem Analizi", freq: 5, total: 6, examples: ["Sistem analizi, veri tabanı yönetimi ve IT destek konularına yatkınlık", "İş ihtiyaçlarını teknik gereksinimlere dönüştürme"] },
-                        { name: "Süreç Geliştirme (IT Odaklı)", freq: 5, total: 6, examples: ["ERP sistemini iyileştirme, özelleştirme ve entegre etme", "İş birimleriyle süreç geliştirme ve ihtiyaç analizi yapma"] },
-                        { name: "Kullanıcı Desteği ve Eğitimi", freq: 4, total: 6, examples: ["ERP kullanıcı desteği sağlama ve eğitim verme", "ERP kullanıcı eğitimleri düzenlemek, dokümantasyon hazırlamak"] },
-                        { name: "SQL Bilgisi", freq: 3, total: 6, examples: ["Temel SQL sorguları yazabilme", "Veritabanından veri çekme ve raporlama"] },
-                    ],
-                    technicalSkillsDetails: ["ERP (Logo Tiger, SAP modülleri, Netsis)", "SQL Server / Oracle", "Excel VBA", "İş Zekası Araçları (Power BI, Qlik Sense - Tercihen)", "ITIL, COBIT, ISO 27001 (Uyum rolleri)"],
-                    methodologiesDetails: ["Sistem Geliştirme Yaşam Döngüsü (SDLC)", "Çevik (Agile) Metodolojiler (Tercihen)", "Veri Modelleme", "BT Proje Yönetimi"]
-                },
-                "tedarik-yonetimi-lojistik-depo": {
-                    id: "tedarik-yonetimi-lojistik-depo",
-                    name: "Tedarik Yönetimi / Lojistik / Depo",
-                    intro: "Bu alandaki endüstri mühendisleri tedarik zinciri verimliliğini artırmak, maliyetleri düşürmek, malzeme akışını optimize etmek ve depo operasyonlarını etkin bir şekilde yönetmekten sorumludur. Lojistik süreçleri ve ERP/WMS bilgisi kritik öneme sahiptir.",
-                    topSkills: [
-                        { name: "Lojistik Süreçleri Bilgisi", freq: 7, total: 7, examples: ["Ürün kabul, adresleme, toplama ve sevk süreçlerinin sistemsel yönetimi", "İthalat/ihracat operasyonları bilgisi"] },
-                        { name: "ERP Bilgisi (SAP MM/EWM, ABAS vb.)", freq: 7, total: 7, examples: ["SAP EWM–MM, ABAS ERP, SAP MM ve PP modüllerinde yetkinlik", "WMS (Depo Yönetim Sistemi) bilgisi"] },
-                        { name: "Stok Takibi / Yönetimi", freq: 6, total: 7, examples: ["Stok takibi ve sistem girişleri", "Hammadde ve mamul ürün stoklarının planlanması ve optimizasyonu"] },
-                        { name: "Depo Yönetimi", freq: 5, total: 7, examples: ["Depo yönetimi ve organizasyonu", "Depo düzeni (layout) optimizasyonu", "Malzeme elleçleme ekipmanları bilgisi"] },
-                        { name: "Tedarik Zinciri Yönetimi", freq: 4, total: 7, examples: ["Tedarik zinciri, lojistik süreç desteği", "Tedarik zinciri optimizasyonu için veri analizi yapmak"] },
-                    ],
-                    technicalSkillsDetails: ["ERP (SAP MM/EWM/PP, ABAS)", "WMS (Depo Yönetim Sistemleri)", "MS Office (İleri Excel)", "Barkod/RFID sistemleri bilgisi (Tercihen)"],
-                    methodologiesDetails: ["Yalın Lojistik / Yalın Depolama", "5S (Depo uygulamaları)", "Stok Yönetimi Teknikleri (EOQ, JIT)", "Tedarik Zinciri Ağ Tasarımı Temelleri", "MTM (Lojistik süreçleri için)"]
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const tooltipPlugin = {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                                return label.join(' ');
+                            }
+                            return label;
+                        }
+                    }
                 }
-            }
-        };
+            };
 
-        const navContainer = document.getElementById('mainNav');
-        const overviewSection = document.getElementById('overviewSection');
-        const departmentDetailSection = document.getElementById('departmentDetailSection');
-        const departmentNameEl = document.getElementById('departmentName');
-        const departmentIntroEl = document.getElementById('departmentIntro');
-        const departmentSkillsTitleEl = document.getElementById('departmentSkillsTitle');
-        const techSkillsListEl = document.getElementById('techSkillsList');
-        const methodologiesListEl = document.getElementById('methodologiesList');
-        const tasksListEl = document.getElementById('tasksList');
-
-        let overallSkillsChartInstance, commonSoftwareChartInstance, keyMethodologiesChartInstance, departmentSkillsChartInstance;
-
-        function wrapText(text, maxWidthChars) {
-            if (typeof text !== 'string') return [String(text)];
-            const words = text.split(' ');
-            let currentLine = '';
-            const lines = [];
-            for (const word of words) {
-                if ((currentLine + ' ' + word).length > maxWidthChars && currentLine.length > 0) {
-                    lines.push(currentLine);
-                    currentLine = word;
-                } else {
-                    currentLine += (currentLine.length === 0 ? '' : ' ') + word;
+            const wrapLabel = (label, maxWidth) => {
+                if (typeof label !== 'string' || label.length <= maxWidth) {
+                    return label;
                 }
-            }
-            if (currentLine.length > 0) {
-                lines.push(currentLine);
-            }
-            return lines.length > 0 ? lines : [text]; // Return array of strings
-        }
-        
-        function createChart(canvasId, type, data, options) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            return new Chart(ctx, { type, data, options });
-        }
-
-        function populateNav() {
-            const navLinks = [
-                { id: 'overview', name: 'Genel Bakış' },
-                ...Object.values(reportData.departments).map(dept => ({ id: dept.id, name: dept.name }))
-            ];
-
-            navLinks.forEach(link => {
-                const a = document.createElement('a');
-                a.href = '#';
-                a.textContent = link.name;
-                a.classList.add('nav-link', 'px-2', 'sm:px-3', 'py-2', 'text-sm', 'sm:text-base', 'font-medium', 'text-stone-600', 'hover:text-teal-600', 'border-b-2', 'border-transparent');
-                if (link.id === 'overview') a.classList.add('active');
-                a.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    setActiveView(link.id);
-                    document.querySelectorAll('#mainNav .nav-link').forEach(nav => nav.classList.remove('active'));
-                    a.classList.add('active');
+                const words = label.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + word).length > maxWidth && currentLine.length > 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                    }
+                    currentLine += word + ' ';
                 });
-                navContainer.appendChild(a);
-            });
-        }
-        
-        function setActiveView(viewId) {
-            overviewSection.classList.toggle('active', viewId === 'overview');
-            departmentDetailSection.classList.toggle('active', viewId !== 'overview');
+                lines.push(currentLine.trim());
+                return lines.filter(line => line.length > 0);
+            };
 
-            if (viewId !== 'overview' && reportData.departments[viewId]) {
-                const dept = reportData.departments[viewId];
-                departmentNameEl.textContent = dept.name;
-                departmentIntroEl.textContent = dept.intro;
-                departmentSkillsTitleEl.textContent = `${dept.name} İçin En Önemli Yetkinlikler`;
-
-                const skillLabels = dept.topSkills.map(skill => wrapText(skill.name, 20));
-                const skillData = dept.topSkills.map(skill => skill.freq);
-
-                if (departmentSkillsChartInstance) departmentSkillsChartInstance.destroy();
-                departmentSkillsChartInstance = createChart('departmentSkillsChart', 'bar', {
-                    labels: skillLabels,
+            const initDematelChart = () => {
+                const ctx = document.getElementById('dematelChart');
+                if (!ctx) return;
+                const data = {
                     datasets: [{
-                        label: `Frekans (Toplam ${dept.topSkills[0]?.total || 'N/A'} ilanda)`,
-                        data: skillData,
-                        backgroundColor: 'rgba(13, 148, 136, 0.7)', // teal-600
-                        borderColor: 'rgba(13, 148, 136, 1)',
-                        borderWidth: 1
+                        label: 'Neden (Driver)',
+                        data: [
+                            { x: 0.075, y: 3.317, label: 'Excel' },
+                            { x: 0.007, y: 3.368, label: 'Raporlama' },
+                            { x: 0.477, y: 2.400, label: 'İngilizce' },
+                            { x: 0.095, y: 3.564, label: 'SAP' },
+                            { x: 0.099, y: 3.391, label: 'Power BI' },
+                            { x: 0.014, y: 3.773, label: 'Paydaş Yönetimi' },
+                            { x: 0.112, y: 3.630, label: 'Liderlik' },
+                            { x: 0.514, y: 2.271, label: 'MATLAB' },
+                            { x: 0.217, y: 3.088, label: 'Akademik Eğitim' },
+                            { x: 0.088, y: 2.308, label: 'Tableau' }, 
+                            { x: 0.033, y: 1.890, label: 'PowerPoint'},
+                            { x: 0.036, y: 2.147, label: 'MS Office'}
+                        ],
+                        backgroundColor: 'rgba(20, 184, 170, 0.7)', // Teal
+                        borderColor: 'rgba(13, 148, 136, 1)', // Darker Teal
+                        borderWidth: 1,
+                        pointRadius: 7,
+                        pointHoverRadius: 10
+                    }, {
+                        label: 'Sonuç (Dependent)',
+                        data: [
+                             { x: -0.518, y: 4.702, label: 'Analitik Düşünce' },
+                             { x: -0.001, y: 3.888, label: 'Üretim Planlama' },
+                             { x: -0.495, y: 4.718, label: 'Süreç İyileştirme' },
+                             { x: -0.394, y: 4.525, label: 'Problem Çözme' },
+                             { x: -0.423, y: 4.530, label: 'Tecrübe' }
+                        ],
+                        backgroundColor: 'rgba(249, 115, 22, 0.7)', // Orange
+                        borderColor: 'rgba(234, 88, 12, 1)', // Darker Orange
+                        borderWidth: 1,
+                        pointRadius: 7,
+                        pointHoverRadius: 10
                     }]
-                }, {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    scales: {
-                        x: { beginAtZero: true, title: { display: true, text: 'Frekans' } },
-                        y: { ticks: { autoSkip: false } }
+                };
+
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'DEMATEL Neden-Sonuç Diyagramı', font: { size: 18, weight: 'bold' }, color: '#1e293b', padding: { top: 10, bottom: 20 } },
+                            tooltip: {
+                                enabled: true,
+                                mode: 'nearest',
+                                intersect: false,
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                padding: 10,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        const point = context.raw;
+                                        return `${point.label}: (Etki: ${point.x.toFixed(3)}, Önem: ${point.y.toFixed(3)})`;
+                                    }
+                                }
+                            },
+                            legend: { position: 'top', labels: { font: {size: 12}, color: '#334155' } }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Etki Derecesi (D-R)', font: {size: 14, weight: 'medium'}, color: '#475569' }, grid: { color: '#e2e8f0' }, ticks: { color: '#475569'} },
+                            y: { title: { display: true, text: 'Önem Derecesi (D+R)', font: {size: 14, weight: 'medium'}, color: '#475569' }, grid: { color: '#e2e8f0' }, ticks: { color: '#475569'} }
+                        }
+                    }
+                });
+            };
+
+            const initAhpChart = () => {
+                const ctx = document.getElementById('ahpChart');
+                if (!ctx) return;
+                const rawLabels = ['Liderlik', 'Paydaş Yönetimi', 'SAP', 'Akademik Eğitim', 'Power BI', 'Tableau', 'Excel', 'MATLAB', 'Raporlama', 'MS Office', 'PowerPoint', 'İngilizce'];
+                const dataValues = [0.224, 0.154, 0.117, 0.107, 0.088, 0.088, 0.052, 0.044, 0.037, 0.036, 0.033, 0.020];
+                const backgroundColors = ['#14b8a6', '#0d9488', '#0f766e', '#065f46', '#f97316', '#ea580c', '#c2410c', '#9a3412', '#0ea5e9', '#0284c7', '#0369a1', '#075985'];
+                
+                const chartData = {
+                    labels: rawLabels.map(l => wrapLabel(l, 18)),
+                    datasets: [{
+                        label: 'Normalize Edilmiş Ağırlık',
+                        data: dataValues,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace(/,(?=[^,]*$)/, ',0.7')), 
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                };
+                
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: chartData,
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: true, text: 'Sürücü Yetkinliklerin AHP Ağırlıkları', font: { size: 18, weight: 'bold' }, color: '#1e293b', padding: { top: 10, bottom: 20 } },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                padding: 10,
+                                displayColors: false,
+                                callbacks: {
+                                    title: function(tooltipItems) {
+                                        const item = tooltipItems[0];
+                                        let label = rawLabels[item.dataIndex]; 
+                                        return label;
+                                    },
+                                    label: function(context) {
+                                        return `Ağırlık: ${context.parsed.x.toFixed(3)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { beginAtZero: true, title: { display: true, text: 'Ağırlık', font: {size: 14, weight: 'medium'}, color: '#475569' }, grid: { color: '#e2e8f0' }, ticks: { color: '#475569'} },
+                            y: { grid: { display: false }, ticks: { color: '#475569', font: {size: 11} } }
+                        }
+                    }
+                });
+            };
+
+            const initCompatibilityScoresChart = () => {
+                const ctx = document.getElementById('compatibilityScoresChart');
+                if (!ctx) return;
+                const scores = [0.964,0.947,0.947,0.937,0.937,0.933,0.929,0.926,0.925,0.924,0.923,0.921,0.916,0.914,0.912,0.911,0.909,0.909,0.906,0.903,0.903,0.902,0.898,0.897,0.894,0.894,0.893,0.893,0.892,0.891,0.887,0.885,0.884,0.884,0.883,0.88,0.879,0.878,0.878,0.877,0.875,0.875,0.872,0.87,0.869,0.868,0.868,0.866,0.865,0.864,0.863,0.863,0.862,0.86,0.857,0.856,0.856,0.853,0.853,0.852,0.849,0.849,0.846,0.846,0.844,0.842,0.835,0.833,0.829,0.825];
+                const bins = { '0.82-0.84': 0, '0.84-0.86': 0, '0.86-0.88': 0, '0.88-0.90': 0, '0.90-0.92': 0, '0.92-0.94': 0, '0.94-0.96': 0, '0.96-0.98': 0 };
+                scores.forEach(score => {
+                    if(score >= 0.96) bins['0.96-0.98']++;
+                    else if(score >= 0.94) bins['0.94-0.96']++;
+                    else if(score >= 0.92) bins['0.92-0.94']++;
+                    else if(score >= 0.90) bins['0.90-0.92']++;
+                    else if(score >= 0.88) bins['0.88-0.90']++;
+                    else if(score >= 0.86) bins['0.86-0.88']++;
+                    else if(score >= 0.84) bins['0.84-0.86']++;
+                    else if(score >= 0.82) bins['0.82-0.84']++;
+                });
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(bins),
+                        datasets: [{
+                            label: 'Eşleşme Sayısı',
+                            data: Object.values(bins),
+                            backgroundColor: 'rgba(20, 184, 170, 0.6)', // Teal
+                            borderColor: 'rgba(13, 148, 136, 1)', // Darker Teal
+                            borderWidth: 1,
+                            borderRadius: 4,
+                        }]
                     },
-                    plugins: { legend: { display: false }, tooltip: {
-                        callbacks: {
-                            title: function(tooltipItems) {
-                                 // For wrapped labels, Chart.js stores them as arrays.
-                                 // We need to join them back for the tooltip title.
-                                const labelArray = tooltipItems[0].chart.data.labels[tooltipItems[0].dataIndex];
-                                return Array.isArray(labelArray) ? labelArray.join(' ') : labelArray;
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                           legend: { display: false },
+                           title: { display: true, text: 'Atama Uyum Skorları Dağılımı', font: { size: 18, weight: 'bold' }, color: '#1e293b', padding: { top: 10, bottom: 20 } },
+                        },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Frekans (Eşleşme Sayısı)', font: {size: 14, weight: 'medium'}, color: '#475569' }, grid: { color: '#e2e8f0' }, ticks: { color: '#475569'} },
+                            x: { title: { display: true, text: 'Uyumluluk Skoru Aralığı', font: {size: 14, weight: 'medium'}, color: '#475569' }, grid: { display: false }, ticks: { color: '#475569'} }
+                        }
+                    }
+                });
+            };
+
+            const initParetoChart = () => {
+                const ctx = document.getElementById('paretoChart');
+                if (!ctx) return;
+                const rawLabels = ['İngilizce', 'Excel', 'Raporlama', 'Problem Çözme', 'Analitik Düşünce', 'Takım Çalışmasına Yatkın', 'MS Office', 'İletişim', 'Sunum Becerileri', 'Zaman Yönetimi', 'Proje Yönetimi', 'SAP', 'Liderlik', 'Süreç Analizi', 'Süreç İyileştirme', 'Yalın Üretim', 'Kalite Kontrol', 'Maliyet Analizleri', 'Performans Analizi', 'Veri Analizi'];
+                const dataValues = [105, 101, 91, 79, 78, 59, 58, 48, 45, 41, 39, 38, 32, 29, 28, 26, 26, 23, 22, 21];
+                
+                const total = dataValues.reduce((a, b) => a + b, 0);
+                const cumulativePercentage = dataValues.map((v, i) => dataValues.slice(0, i + 1).reduce((a, b) => a + b) * 100 / total);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: rawLabels.map(l => wrapLabel(l, 16)),
+                        datasets: [{
+                            label: 'Frekans',
+                            data: dataValues,
+                            backgroundColor: 'rgba(20, 184, 170, 0.7)', // Teal
+                            borderColor: 'rgba(13, 148, 136, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            yAxisID: 'y',
+                        }, {
+                            label: 'Kümülatif Yüzde',
+                            data: cumulativePercentage,
+                            type: 'line',
+                            borderColor: 'rgba(249, 115, 22, 1)', // Orange
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                            tension: 0.2,
+                            yAxisID: 'y1',
+                            pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+                            pointRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Genel Yetkinlik Pareto Analizi (En Sık Geçen 20)', font: { size: 18, weight: 'bold' }, color: '#1e293b', padding: { top: 10, bottom: 20 } },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                padding: 10,
+                                callbacks: {
+                                    title: function(tooltipItems) {
+                                        const item = tooltipItems[0];
+                                        let label = rawLabels[item.dataIndex];
+                                        return label;
+                                    }
+                                }
+                            },
+                            legend: { position: 'top', labels: { font: {size: 12}, color: '#334155' } }
+                        },
+                        scales: {
+                           x: { ticks: { autoSkip: false, color: '#475569', font: {size: 10} }, grid: { display: false } },
+                           y: {
+                                type: 'linear', display: true, position: 'left',
+                                title: { display: true, text: 'Frekans', font: {size: 14, weight: 'medium'}, color: '#475569' },
+                                grid: { color: '#e2e8f0' }, ticks: { color: '#475569'}
+                            },
+                            y1: {
+                                type: 'linear', display: true, position: 'right',
+                                title: { display: true, text: 'Kümülatif Yüzde (%)', font: {size: 14, weight: 'medium'}, color: '#475569' },
+                                grid: { drawOnChartArea: false }, min: 0, max: 100, ticks: { color: '#475569'}
                             }
                         }
-                    } }
+                    }
                 });
+            };
+
+            const initDepartmentHeatmap = () => {
+                const heatmapDiv = document.getElementById('departmentHeatmap');
+                if (!heatmapDiv) return;
+                const zData = [
+                    [1,16,1,0,3,1,0,0,0,1,1,2,5,0,2,0,0,1,0,0,1,0,0,3,1,0,1,0,1,0,2,0,0,2,0,0,3,0,1,0,1,0], // Ar-Ge
+                    [2,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // Bakım
+                    [6,14,7,0,11,1,2,1,0,3,1,2,0,0,1,0,1,2,0,2,3,0,1,1,2,1,2,2,4,0,3,0,0,4,0,1,3,2,1,1,3,0], // IT
+                    [10,21,11,0,11,3,3,1,2,2,3,3,2,2,1,2,1,2,1,1,4,2,3,1,0,2,1,1,4,2,2,0,0,4,0,0,4,0,1,1,4,0], // Finans
+                    [6,8,5,2,3,2,0,0,0,0,1,1,0,0,1,0,1,1,0,2,2,0,1,1,1,0,1,0,1,0,1,0,0,3,0,0,4,0,0,0,0,0], // İK
+                    [14,24,15,6,12,3,0,1,2,4,2,3,5,0,2,0,3,2,1,3,5,0,2,3,2,1,5,1,7,0,4,1,1,5,1,1,5,0,1,1,4,0], // Kalite
+                    [1,2,1,0,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // Kur. İlet.
+                    [1,10,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // Pazarlama
+                    [2,1,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // Satın Alma
+                    [1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // Strateji
+                    [13,11,10,2,9,3,2,1,1,2,1,1,2,1,1,1,2,2,1,1,3,1,1,2,1,1,3,1,3,1,2,0,0,3,0,0,4,1,1,1,2,0], // Üretim
+                    [11,7,6,0,7,2,2,0,0,1,0,1,0,0,0,0,1,1,0,2,3,0,2,2,2,0,2,0,4,0,1,0,0,2,0,0,4,0,0,0,1,0]  // Planlama
+                ];
+                const yLabels = ["Araştırma ve Geliştirme", "Bakım / Onarım", "Bilgi Teknolojileri / IT", "Finans", "İnsan Kaynakları", "Kalite Yönetimi", "Kurumsal İletişim", "Pazarlama", "Satın Alma", "Strateji", "Üretim / İmalat", "Planlama"];
+                const xLabels = ['Excel', 'İngilizce', 'Raporlama', 'Problem Çözme', 'Analitik Düşünce', 'Takım Çalışması', 'MS Office', 'İletişim', 'Sunum Becerileri', 'Zaman Yönetimi', 'Proje Yönetimi', 'SAP', 'Liderlik', 'Süreç Analizi', 'Süreç İyileştirme', 'Yalın Üretim', 'Kalite Kontrol', 'Maliyet Analizleri', 'Performans Analizi', 'Veri Analizi', 'Adaptasyon', 'Akış Haritalama', 'Detay Odaklılık', 'Depo Yönetimi', 'Ehliyet', 'ERP Bilgisi', 'Esnek Çalışma', 'Fizibilite', 'İyileştirme Projeleri', 'Kalite Kontrol Planı', 'Kampanya Analizi', 'Kaynak Optimizasyonu', 'Kaynak Planlama', 'Koordinasyon', 'Lean Six Sigma', 'Malzeme İhtiyaç', 'MS Project', 'Müşteri Şikayet Analizi', 'Oracle ERP', 'Operasyonel Süreç Günc.', 'Pazar Araştırması', 'Pazar Araşt. Raporu'];
                 
-                techSkillsListEl.innerHTML = dept.technicalSkillsDetails.map(skill => `<li>${skill}</li>`).join('');
-                methodologiesListEl.innerHTML = dept.methodologiesDetails.map(method => `<li>${method}</li>`).join('');
-                
-                tasksListEl.innerHTML = '';
-                dept.topSkills.slice(0, 5).forEach(skill => { // Show examples for top 5 skills
-                    if(skill.examples && skill.examples.length > 0) {
-                        const skillTitle = document.createElement('strong');
-                        skillTitle.textContent = skill.name + ":";
-                        skillTitle.classList.add('block', 'mt-2');
-                        tasksListEl.appendChild(skillTitle);
-                        skill.examples.forEach(ex => {
-                             const li = document.createElement('li');
-                             li.textContent = ex;
-                             li.classList.add('ml-4');
-                             tasksListEl.appendChild(li);
+                const data = [{
+                    z: zData,
+                    x: xLabels,
+                    y: yLabels,
+                    type: 'heatmap',
+                    colorscale: 'Tealgrn', 
+                    reversescale: false,
+                    xgap: 1,
+                    ygap: 1,
+                    colorbar: {
+                        title: 'Frekans',
+                        titleside: 'right',
+                        thickness: 15,
+                        len: 0.9
+                    }
+                }];
+
+                const layout = {
+                    title: { text: 'Departman Bazlı Yetkinlik Frekans Haritası', font: {size: 18, weight: 'bold', color: '#1e293b'}, y:0.95 },
+                    xaxis: { automargin: true, tickangle: -55, tickfont: {size: 9, color: '#475569'} },
+                    yaxis: { automargin: true, tickfont: {size: 10, color: '#475569'} },
+                    margin: { t: 80, l: 220, b: 180, r: 30 },
+                    paper_bgcolor: '#f8fafc', 
+                    plot_bgcolor: '#f8fafc'
+                };
+
+                Plotly.newPlot('departmentHeatmap', data, layout, {responsive: true, displaylogo: false});
+            };
+
+            const sections = document.querySelectorAll('.fade-in-section');
+            const observer = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        document.querySelectorAll('#toc-nav .nav-link').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${entry.target.id}`) {
+                                link.classList.add('active');
+                            }
                         });
                     }
                 });
-
-
-            } else if (viewId === 'overview') {
-                if (!overallSkillsChartInstance) { // Create overview charts only once
-                    const overallLabels = reportData.overallTopSkills.map(skill => wrapText(skill.name, 20));
-                    overallSkillsChartInstance = createChart('overallSkillsChart', 'bar', {
-                        labels: overallLabels,
-                        datasets: [{
-                            label: 'Frekans (Toplam 60 ilanda)',
-                            data: reportData.overallTopSkills.map(skill => skill.freq),
-                            backgroundColor: 'rgba(217, 119, 6, 0.7)', // amber-600
-                            borderColor: 'rgba(217, 119, 6, 1)',
-                            borderWidth: 1
-                        }]
-                    }, { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true }, y: { ticks: { autoSkip: false } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: function(tooltipItems) { const labelArray = tooltipItems[0].chart.data.labels[tooltipItems[0].dataIndex]; return Array.isArray(labelArray) ? labelArray.join(' ') : labelArray; } } } } });
-
-                    const softwareLabels = reportData.commonSoftware.map(skill => wrapText(skill.name, 20));
-                    commonSoftwareChartInstance = createChart('commonSoftwareChart', 'bar', {
-                        labels: softwareLabels,
-                        datasets: [{
-                            label: 'Frekans (Toplam 60 ilanda)',
-                            data: reportData.commonSoftware.map(skill => skill.freq),
-                            backgroundColor: 'rgba(75, 85, 99, 0.7)', // stone-600
-                            borderColor: 'rgba(75, 85, 99, 1)',
-                            borderWidth: 1
-                        }]
-                    }, { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true }, y: { ticks: { autoSkip: false } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: function(tooltipItems) { const labelArray = tooltipItems[0].chart.data.labels[tooltipItems[0].dataIndex]; return Array.isArray(labelArray) ? labelArray.join(' ') : labelArray; } } } } });
-                    
-                    const methodologyLabels = reportData.keyMethodologies.map(skill => wrapText(skill.name, 25));
-                     keyMethodologiesChartInstance = createChart('keyMethodologiesChart', 'doughnut', {
-                        labels: methodologyLabels,
-                        datasets: [{
-                            label: 'Frekans (Toplam 60 ilanda)',
-                            data: reportData.keyMethodologies.map(skill => skill.freq),
-                            backgroundColor: [
-                                'rgba(217, 119, 6, 0.7)', // amber-600
-                                'rgba(13, 148, 136, 0.7)', // teal-600
-                                'rgba(75, 85, 99, 0.7)', // stone-600
-                                'rgba(29, 78, 216, 0.7)', // blue-700
-                                'rgba(101, 163, 13, 0.7)', // lime-600
-                                'rgba(192, 38, 211, 0.7)', // fuchsia-600
-                            ],
-                            borderColor: '#fff',
-                            borderWidth: 1
-                        }]
-                    }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' }, tooltip: { callbacks: { title: function(tooltipItems) { const labelArray = tooltipItems[0].chart.data.labels[tooltipItems[0].dataIndex]; return Array.isArray(labelArray) ? labelArray.join(' ') : labelArray; } } } } });
+            }, { threshold: 0.3, rootMargin: "-100px 0px -100px 0px" }); 
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            let firstVisibleSection = false;
+            document.querySelectorAll('#toc-nav .nav-link').forEach(link => {
+                const sectionId = link.getAttribute('href');
+                const sectionElement = document.querySelector(sectionId);
+                if (sectionElement) {
+                    const rect = sectionElement.getBoundingClientRect();
+                    if (rect.top >= 0 && rect.top < window.innerHeight / 2 && !firstVisibleSection) {
+                        link.classList.add('active');
+                        firstVisibleSection = true;
+                    } else {
+                         link.classList.remove('active');
+                    }
                 }
-            }
-        }
+            });
+             if(!firstVisibleSection && document.querySelector('#toc-nav .nav-link')){
+                 document.querySelector('#toc-nav .nav-link').classList.add('active');
+             }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            populateNav();
-            setActiveView('overview'); // Initial view
+            initDematelChart();
+            initAhpChart();
+            initCompatibilityScoresChart();
+            initParetoChart();
+            initDepartmentHeatmap();
         });
     </script>
 </body>
